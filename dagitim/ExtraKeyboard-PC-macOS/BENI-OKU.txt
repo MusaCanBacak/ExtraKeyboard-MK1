@@ -1,0 +1,40 @@
+=====================================================================
+ ExtraKeyboard MK1 — PC Uygulamasi (macOS surumu)
+=====================================================================
+
+KURULUM + CALISTIRMA (tek adim):
+  Baslat.command dosyasina cift tikla
+  Ilk acilis interneti kullanip gerekli paketleri kurar (~1-2 dk);
+  sonraki acilislar aninda olur. Python 3.9 veya ustu kurulu olmalidir
+  (python.org).
+
+NELER VAR:
+  - Tuslara uygulama/adres/kisayol/metin/komut atama (surukle-birak destekli)
+  - 45 tus kombinasyonu (COMBO), enkoder, LED ayarlari
+  - Telefon sekmesi: ayni Wi-Fi'daki telefondan canli izleme (QR ile)
+
+NOTLAR:
+  - Klavyeyi kartin "USB" etiketli konnektorunden takin.
+  - Ayarlar bu klasordeki config.json dosyasinda tutulur; eski
+    bilgisayardan tasimak icin o dosyayi buraya kopyalamak yeterlidir.
+
+ONEMLI - PYTHON SURUMU (macOS):
+  Uygulama Tcl/Tk 8.6 gerektirir. macOS'un kendi Python 3.9'u
+  (/usr/bin/python3) YETERLI DEGILDIR: tkinter'i vardir ama 2010 yapimi
+  Tk 8.5.9 ile gelir ve arayuz o surumde HIC CIZILMEZ - pencere acilir,
+  basligi gorunur, tiklamalar bile calisir, ama ici bombos (acik temada
+  bembeyaz) kalir.
+  Cozum: python.org adresinden Python 3.12 veya ustunu kurun (Tcl/Tk 8.6
+  dahildir), ardindan bu klasordeki .venv klasorunu silip Baslat.command'a
+  yeniden cift tiklayin. Baslat.command bunu kendiliginden de yapar:
+  eski Tk'li bir sanal ortam bulursa siler ve dogru Python ile yeniden kurar.
+
+KALDIRMA:
+  Kaldir-macOS.command dosyasina cift tiklayin. Sanal ortami,
+  masaustu kisayolunu, gunluk ve on bellek dosyalarini kaldirir.
+  Ayarlariniz ve program klasoru ayrica sorulur (istemezseniz
+  korunur). Klavyedeki firmware silinmez; cihaz calismaya devam eder.
+
+  - Sorun giderme: once tools/selfcheck.py calistirin:
+      .venv/bin/python tools/selfcheck.py
+=====================================================================

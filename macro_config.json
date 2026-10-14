@@ -1,0 +1,42 @@
+{
+    "F13": {
+        "type": "url",
+        "value": "bluedevelopment.com",
+        "name": "Buton 1"
+    },
+    "F14": {
+        "type": "app",
+        "value": "/Applications/AnyDesk.app",
+        "name": "Buton 2"
+    },
+    "F15": {
+        "type": "shortcut",
+        "value": "command+c",
+        "name": "Buton 3"
+    },
+    "F16": {
+        "type": "shortcut",
+        "value": "command+v",
+        "name": "Buton 4"
+    },
+    "F17": {
+        "type": "none",
+        "value": "",
+        "name": "Buton 5"
+    },
+    "F18": {
+        "type": "none",
+        "value": "",
+        "name": "Buton 6"
+    },
+    "F19": {
+        "type": "none",
+        "value": "",
+        "name": "Buton 7"
+    },
+    "F20": {
+        "type": "none",
+        "value": "",
+        "name": "Buton 8"
+    }
+}

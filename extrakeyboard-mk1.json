@@ -1,0 +1,1168 @@
+{
+  "format": "kart-defteri-paket",
+  "surum": 1,
+  "varsa": "guncelle",
+  "kartlar": [
+    {
+      "ad": "ExtraKeyboard MK1",
+      "kategori": "Devre",
+      "etiketler": [
+        "extrakeyboard",
+        "mk1",
+        "esp32-s3",
+        "klavye",
+        "hid"
+      ],
+      "bilgi": {
+        "Kart": "ESP32-S3-DevKitC-1",
+        "Tuş mantığı": "Aktif-LOW + INPUT_PULLUP (basılınca GPIO → GND)",
+        "Matris": "YOK — her tuş kendi GPIO'suna doğrudan bağlı, diyot yok",
+        "LED devresi": "GPIO → 330 Ω → LED anot (uzun bacak) · katot → GND",
+        "USB": "Native USB portu (kartta \"USB\" yazan konnektör), D-/D+ = GPIO19/20 dahili",
+        "Donanım": "12 tuş + 1 enkoder (EC11) + 3 durum LED'i",
+        "Firmware": "firmware/src/config.h"
+      },
+      "not": "ESP32-S3-DevKitC-1 tabanlı özel klavye. Tüm anahtarlar aktif-LOW + INPUT_PULLUP: tuşun bir bacağı GPIO'ya, diğeri ortak GND'ye gider. Matris ve diyot yok. Bağlantı kartın native USB portundan.",
+      "notlar": [
+        {
+          "anahtar": "ayrilmis-pinler",
+          "baslik": "⚠ Ayrılmış / kritik pinler — tuş veya LED BAĞLANMAZ",
+          "metin": "19, 20  → Native USB D-/D+ · bağlanırsa USB tamamen bozulur\n26-32   → Dahili SPI flash · kart açılmaz/çöker\n33-37   → Octal PSRAM (N16R8) · PSRAM'li kartta çöker\n0       → Boot strapping (BOOT düğmesi) · boot moduna takılır\n3,45,46 → Strapping · boot/besleme sorunları\n43, 44  → UART0 konsol (native USB kullanıldığı için boş)\n38, 48  → Bazı kartlarda dahili RGB LED · firmware GPIO48'i söndürür\n39-42   → Pin-JTAG (MTCK/MTDO/MTDI/MTMS)\n\nGPIO41/42 istisnası: bunlar pin-JTAG hatları ama proje native USB-JTAG kullandığı için LED çıkışı yapmak GÜVENLİ, USB'yi etkilemez.\n\nSonuç: pin şeması temiz — hiçbir tuş/LED USB, flash, PSRAM veya strapping pinine düşmüyor. Yani bağlantı kopmaları pin çakışmasından DEĞİL."
+        },
+        {
+          "anahtar": "bos-gpio",
+          "baslik": "Boş GPIO'lar — genişleme için",
+          "metin": "Tam klavyede kullanılmayan, yeni tuş eklemeye uygun pinler: 1, 2, 39, 40, 47.\n\n38 ve 48'i kullanma — bazı kartlarda dahili RGB LED."
+        },
+        {
+          "anahtar": "tus-eslemesi",
+          "baslik": "Tuş N ↔ GPIO eşlemesi (uygulama sırası)",
+          "metin": "Uygulama tuşları keys.cpp içindeki KEY_PINS[] dizisinin SIRASINA göre numaralanır.\n\nGÜNCEL EŞLEME:\nTuş1→GPIO4, Tuş2→5, Tuş3→6, Tuş4→7, Tuş5→15, Tuş6→16, Tuş7→17, Tuş8→18,\nTuş9→21, Tuş10→8, COMBO→9, OS→10\n\nNE DEĞİŞTİ (2026-09):\nÜst sıra dört tuşun (Tuş9/Tuş10/COMBO/OS) hattı montajda çaprazlıydı. keys.cpp içinde Tuş9↔Tuş12 ve Tuş10↔Tuş11 takası yapılarak düzeltildi.\n\nSonuç: Tuş9 = GPIO21 (K12), Tuş10 = GPIO8 (K9), COMBO = GPIO9, OS = GPIO10.\n\nDİKKAT: GPIO↔pin etiketi (K1..K12) config.h'de SABİTTİR — değişen yalnızca hangi fiziksel tuşun hangi rolü aldığı (keys.cpp sırası). 5 klavye aynı donanım olduğundan bu eşleme hepsinde geçerlidir."
+        },
+        {
+          "anahtar": "flash-ayari",
+          "baslik": "Bellek / flash yapılandırması (kritik)",
+          "metin": "platformio.ini:\n  board_build.arduino.memory_type = qio_qspi\n  flash_size = 8MB\n  partitions = default_8MB.csv\n\nBu ayar 8 MB flash + Quad SPI PSRAM (AP_3v3) kartlar içindir.\n\nKart N16R8 (16 MB flash + Octal PSRAM) ise ayar qio_opi OLMALI — aksi hâlde açılışta sorun çıkar.\n\nHer karta yüklemeden önce gerçek chip tipini doğrula:\n  esptool.py --chip esp32s3 flash_id\nÇıktıdaki \"Features: ... PSRAM ...\" satırına ve flash boyutuna bak."
+        }
+      ],
+      "pinler": [
+        {
+          "ad": "3V3",
+          "islev": "3.3 V çıkış",
+          "kenar": "sol"
+        },
+        {
+          "ad": "3V3",
+          "islev": "3.3 V çıkış",
+          "kenar": "sol"
+        },
+        {
+          "ad": "RST",
+          "islev": "Reset (EN)",
+          "kenar": "sol"
+        },
+        {
+          "ad": "GPIO4",
+          "islev": "● K1 — işlev tuşu 1 · anahtar → GND · [ADC1 / dokunmatik]",
+          "kenar": "sol"
+        },
+        {
+          "ad": "GPIO5",
+          "islev": "● K2 — işlev tuşu 2 · anahtar → GND · [ADC1 / dokunmatik]",
+          "kenar": "sol"
+        },
+        {
+          "ad": "GPIO6",
+          "islev": "● K3 — işlev tuşu 3 · anahtar → GND · [ADC1 / dokunmatik]",
+          "kenar": "sol"
+        },
+        {
+          "ad": "GPIO7",
+          "islev": "● K4 — işlev tuşu 4 · anahtar → GND · [ADC1 / dokunmatik]",
+          "kenar": "sol"
+        },
+        {
+          "ad": "GPIO15",
+          "islev": "● K5 — işlev tuşu 5 · anahtar → GND · [ADC2 / XTAL_32K_P]",
+          "kenar": "sol"
+        },
+        {
+          "ad": "GPIO16",
+          "islev": "● K6 — işlev tuşu 6 · anahtar → GND · [ADC2 / XTAL_32K_N]",
+          "kenar": "sol"
+        },
+        {
+          "ad": "GPIO17",
+          "islev": "● K7 — işlev tuşu 7 · anahtar → GND · [ADC2]",
+          "kenar": "sol"
+        },
+        {
+          "ad": "GPIO18",
+          "islev": "● K8 — işlev tuşu 8 · anahtar → GND · [ADC2]",
+          "kenar": "sol"
+        },
+        {
+          "ad": "GPIO8",
+          "islev": "● K9 — uygulamada TUŞ 10 (takas sonrası) · anahtar → GND · [ADC1 / dokunmatik]",
+          "kenar": "sol"
+        },
+        {
+          "ad": "GPIO3",
+          "islev": "ADC1 · STRAPPING (JTAG kaynak seçimi) — kullanma",
+          "kenar": "sol"
+        },
+        {
+          "ad": "GPIO46",
+          "islev": "STRAPPING — boot modu, kullanma",
+          "kenar": "sol"
+        },
+        {
+          "ad": "GPIO9",
+          "islev": "● K10 — COMBO tuşu · anahtar → GND · [ADC1 / dokunmatik]",
+          "kenar": "sol"
+        },
+        {
+          "ad": "GPIO10",
+          "islev": "● K11 — OS tuşu (kısa: Win/Mac, uzun: HID yedek) · anahtar → GND · [ADC1 / dokunmatik / SPI]",
+          "kenar": "sol"
+        },
+        {
+          "ad": "GPIO11",
+          "islev": "● ENC_A — enkoder A (EC11 + RC debounce) · [ADC2 / dokunmatik / SPI]",
+          "kenar": "sol"
+        },
+        {
+          "ad": "GPIO12",
+          "islev": "● ENC_B — enkoder B (EC11 + RC debounce) · [ADC2 / dokunmatik / SPI]",
+          "kenar": "sol"
+        },
+        {
+          "ad": "GPIO13",
+          "islev": "● ENC_SW — enkoder butonu · [ADC2 / dokunmatik]",
+          "kenar": "sol"
+        },
+        {
+          "ad": "GPIO14",
+          "islev": "● LED1 Windows (J1-20) · [ADC2 / dokunmatik]",
+          "kenar": "sol"
+        },
+        {
+          "ad": "5V",
+          "islev": "5 V (USB’den) / harici 5 V giriş",
+          "kenar": "sol"
+        },
+        {
+          "ad": "GND",
+          "islev": "Ortak toprak — devrede kullanılan GND (J1 sonu)",
+          "kenar": "sol"
+        },
+        {
+          "ad": "GND",
+          "islev": "Ortak toprak (aynı net)",
+          "kenar": "sag"
+        },
+        {
+          "ad": "TX (GPIO43)",
+          "islev": "UART0 TX — USB-UART köprüsü, boşta",
+          "kenar": "sag"
+        },
+        {
+          "ad": "RX (GPIO44)",
+          "islev": "UART0 RX — USB-UART köprüsü, boşta",
+          "kenar": "sag"
+        },
+        {
+          "ad": "GPIO1",
+          "islev": "boşta — genişleme için uygun · [ADC1 / dokunmatik]",
+          "kenar": "sag"
+        },
+        {
+          "ad": "GPIO2",
+          "islev": "boşta — genişleme için uygun · [ADC1 / dokunmatik]",
+          "kenar": "sag"
+        },
+        {
+          "ad": "GPIO42",
+          "islev": "● LED2 macOS (J3-6) · [MTMS — pin-JTAG]",
+          "kenar": "sag"
+        },
+        {
+          "ad": "GPIO41",
+          "islev": "● LED3 COMBO (J3-7) · [MTDI — pin-JTAG]",
+          "kenar": "sag"
+        },
+        {
+          "ad": "GPIO40",
+          "islev": "boşta — genişleme için uygun · [MTDO — pin-JTAG]",
+          "kenar": "sag"
+        },
+        {
+          "ad": "GPIO39",
+          "islev": "boşta — genişleme için uygun · [MTCK — pin-JTAG]",
+          "kenar": "sag"
+        },
+        {
+          "ad": "GPIO38",
+          "islev": "GPIO (bazı kartlarda RGB LED) — kullanma",
+          "kenar": "sag"
+        },
+        {
+          "ad": "GPIO37",
+          "islev": "Octal PSRAM’de KULLANILAMAZ",
+          "kenar": "sag"
+        },
+        {
+          "ad": "GPIO36",
+          "islev": "Octal PSRAM’de KULLANILAMAZ",
+          "kenar": "sag"
+        },
+        {
+          "ad": "GPIO35",
+          "islev": "Octal PSRAM’de KULLANILAMAZ",
+          "kenar": "sag"
+        },
+        {
+          "ad": "GPIO0",
+          "islev": "BOOT butonu · STRAPPING (LOW = indirme modu) — kullanma",
+          "kenar": "sag"
+        },
+        {
+          "ad": "GPIO45",
+          "islev": "STRAPPING — VDD_SPI voltajı, kullanma",
+          "kenar": "sag"
+        },
+        {
+          "ad": "GPIO48",
+          "islev": "Adreslenebilir RGB LED (WS2812) — kullanma",
+          "kenar": "sag"
+        },
+        {
+          "ad": "GPIO47",
+          "islev": "boşta — genişleme için uygun · [GPIO]",
+          "kenar": "sag"
+        },
+        {
+          "ad": "GPIO21",
+          "islev": "● K12 — uygulamada TUŞ 9 (takas sonrası) · J3-18 · anahtar → GND · [GPIO]",
+          "kenar": "sag"
+        },
+        {
+          "ad": "GPIO20",
+          "islev": "USB D+ (native) — BAĞLAMA, USB bozulur",
+          "kenar": "sag"
+        },
+        {
+          "ad": "GPIO19",
+          "islev": "USB D- (native) — BAĞLAMA, USB bozulur",
+          "kenar": "sag"
+        },
+        {
+          "ad": "GND",
+          "islev": "Ortak toprak (aynı net)",
+          "kenar": "sag"
+        },
+        {
+          "ad": "GND",
+          "islev": "Ortak toprak (aynı net)",
+          "kenar": "sag"
+        }
+      ]
+    },
+    {
+      "ad": "ExtraKeyboard MK1 Numpad",
+      "kategori": "Devre",
+      "etiketler": [
+        "extrakeyboard",
+        "numpad",
+        "esp32-s3",
+        "klavye",
+        "hid"
+      ],
+      "bilgi": {
+        "Kart": "ESP32-S3-DevKitC-1",
+        "Donanım": "16 tuş + 2 durum LED'i · ENKODER YOK",
+        "Fark": "Enkoder ve LED_WIN pinleri (11/12/13/14) burada TUŞ olur",
+        "Tuş mantığı": "Aktif-LOW + INPUT_PULLUP (basılınca GPIO → GND)",
+        "Mod değişimi": "0 (GPIO4) basılı tut + Enter (GPIO6) → Windows/macOS geçişi",
+        "Firmware": "firmware-numpad/src/config.h"
+      },
+      "not": "Tam klavyenin numpad varyantı. Enkoder yok; onun pinleri (GPIO11/12/13) ve LED_WIN pini (GPIO14) üst sıra tuşlarına ayrıldı. LED göstergeleri GPIO42 (Windows) ve GPIO41 (macOS).",
+      "notlar": [
+        {
+          "anahtar": "fiziksel-duzen",
+          "baslik": "Fiziksel düzen (üstten alta)",
+          "metin": "7 8 9 /     (Tuş 13-16, GPIO 11,12,13,14)\n4 5 6 *     (Tuş  9-12, GPIO 8,9,10,21)\n1 2 3 −     (Tuş  5-8,  GPIO 15,16,17,18)\n0 . ⏎ +     (Tuş  1-4,  GPIO 4,5,6,7)\n\nMod değişimi: 0 (GPIO4) basılı tut + Enter (GPIO6) → Windows/macOS geçişi."
+        },
+        {
+          "anahtar": "ayrilmis-pinler",
+          "baslik": "⚠ Ayrılmış pinler",
+          "metin": "Tam klavyeyle aynı kısıtlar geçerli: 19/20 (USB), 26-32 (flash), 33-37 (Octal PSRAM), 0 ve 3/45/46 (strapping), 38/48 (dahili RGB LED).\n\nBu varyantta da hiçbir tuş/LED bu pinlere düşmüyor."
+        }
+      ],
+      "pinler": [
+        {
+          "ad": "3V3",
+          "islev": "3.3 V çıkış",
+          "kenar": "sol"
+        },
+        {
+          "ad": "3V3",
+          "islev": "3.3 V çıkış",
+          "kenar": "sol"
+        },
+        {
+          "ad": "RST",
+          "islev": "Reset (EN)",
+          "kenar": "sol"
+        },
+        {
+          "ad": "GPIO4",
+          "islev": "● K1 — alt sıra 1 · KP0 (0) · mod değişim tuşu · anahtar → GND · [ADC1 / dokunmatik]",
+          "kenar": "sol"
+        },
+        {
+          "ad": "GPIO5",
+          "islev": "● K2 — alt sıra 2 · KP. (.) · anahtar → GND · [ADC1 / dokunmatik]",
+          "kenar": "sol"
+        },
+        {
+          "ad": "GPIO6",
+          "islev": "● K3 — alt sıra 3 · KPEnter (⏎) · mod değişim tuşu · anahtar → GND · [ADC1 / dokunmatik]",
+          "kenar": "sol"
+        },
+        {
+          "ad": "GPIO7",
+          "islev": "● K4 — alt sıra 4 · KP+ (+) · anahtar → GND · [ADC1 / dokunmatik]",
+          "kenar": "sol"
+        },
+        {
+          "ad": "GPIO15",
+          "islev": "● K5 — 3. sıra 1 · KP1 · anahtar → GND · [ADC2 / XTAL_32K_P]",
+          "kenar": "sol"
+        },
+        {
+          "ad": "GPIO16",
+          "islev": "● K6 — 3. sıra 2 · KP2 · anahtar → GND · [ADC2 / XTAL_32K_N]",
+          "kenar": "sol"
+        },
+        {
+          "ad": "GPIO17",
+          "islev": "● K7 — 3. sıra 3 · KP3 · anahtar → GND · [ADC2]",
+          "kenar": "sol"
+        },
+        {
+          "ad": "GPIO18",
+          "islev": "● K8 — 3. sıra 4 · KP- (−) · anahtar → GND · [ADC2]",
+          "kenar": "sol"
+        },
+        {
+          "ad": "GPIO8",
+          "islev": "● K9 — 2. sıra 1 · KP4 · anahtar → GND · [ADC1 / dokunmatik]",
+          "kenar": "sol"
+        },
+        {
+          "ad": "GPIO3",
+          "islev": "ADC1 · STRAPPING (JTAG kaynak seçimi) — kullanma",
+          "kenar": "sol"
+        },
+        {
+          "ad": "GPIO46",
+          "islev": "STRAPPING — boot modu, kullanma",
+          "kenar": "sol"
+        },
+        {
+          "ad": "GPIO9",
+          "islev": "● K10 — 2. sıra 2 · KP5 · anahtar → GND · [ADC1 / dokunmatik]",
+          "kenar": "sol"
+        },
+        {
+          "ad": "GPIO10",
+          "islev": "● K11 — 2. sıra 3 · KP6 · anahtar → GND · [ADC1 / dokunmatik / SPI]",
+          "kenar": "sol"
+        },
+        {
+          "ad": "GPIO11",
+          "islev": "● K13 — üst sıra 1 · KP7 · anahtar → GND · [ADC2 / dokunmatik / SPI]",
+          "kenar": "sol"
+        },
+        {
+          "ad": "GPIO12",
+          "islev": "● K14 — üst sıra 2 · KP8 · anahtar → GND · [ADC2 / dokunmatik / SPI]",
+          "kenar": "sol"
+        },
+        {
+          "ad": "GPIO13",
+          "islev": "● K15 — üst sıra 3 · KP9 · anahtar → GND · [ADC2 / dokunmatik]",
+          "kenar": "sol"
+        },
+        {
+          "ad": "GPIO14",
+          "islev": "● K16 — üst sıra 4 · KP/ (/) · anahtar → GND · [ADC2 / dokunmatik]",
+          "kenar": "sol"
+        },
+        {
+          "ad": "5V",
+          "islev": "5 V (USB’den) / harici 5 V giriş",
+          "kenar": "sol"
+        },
+        {
+          "ad": "GND",
+          "islev": "Ortak toprak — devrede kullanılan GND (J1 sonu)",
+          "kenar": "sol"
+        },
+        {
+          "ad": "GND",
+          "islev": "Ortak toprak (aynı net)",
+          "kenar": "sag"
+        },
+        {
+          "ad": "TX (GPIO43)",
+          "islev": "UART0 TX — USB-UART köprüsü, boşta",
+          "kenar": "sag"
+        },
+        {
+          "ad": "RX (GPIO44)",
+          "islev": "UART0 RX — USB-UART köprüsü, boşta",
+          "kenar": "sag"
+        },
+        {
+          "ad": "GPIO1",
+          "islev": "boşta — genişleme için uygun · [ADC1 / dokunmatik]",
+          "kenar": "sag"
+        },
+        {
+          "ad": "GPIO2",
+          "islev": "boşta — genişleme için uygun · [ADC1 / dokunmatik]",
+          "kenar": "sag"
+        },
+        {
+          "ad": "GPIO42",
+          "islev": "● LED0 — Windows modu göstergesi · [MTMS — pin-JTAG]",
+          "kenar": "sag"
+        },
+        {
+          "ad": "GPIO41",
+          "islev": "● LED1 — macOS modu göstergesi · [MTDI — pin-JTAG]",
+          "kenar": "sag"
+        },
+        {
+          "ad": "GPIO40",
+          "islev": "boşta — genişleme için uygun · [MTDO — pin-JTAG]",
+          "kenar": "sag"
+        },
+        {
+          "ad": "GPIO39",
+          "islev": "boşta — genişleme için uygun · [MTCK — pin-JTAG]",
+          "kenar": "sag"
+        },
+        {
+          "ad": "GPIO38",
+          "islev": "GPIO (bazı kartlarda RGB LED) — kullanma",
+          "kenar": "sag"
+        },
+        {
+          "ad": "GPIO37",
+          "islev": "Octal PSRAM’de KULLANILAMAZ",
+          "kenar": "sag"
+        },
+        {
+          "ad": "GPIO36",
+          "islev": "Octal PSRAM’de KULLANILAMAZ",
+          "kenar": "sag"
+        },
+        {
+          "ad": "GPIO35",
+          "islev": "Octal PSRAM’de KULLANILAMAZ",
+          "kenar": "sag"
+        },
+        {
+          "ad": "GPIO0",
+          "islev": "BOOT butonu · STRAPPING (LOW = indirme modu) — kullanma",
+          "kenar": "sag"
+        },
+        {
+          "ad": "GPIO45",
+          "islev": "STRAPPING — VDD_SPI voltajı, kullanma",
+          "kenar": "sag"
+        },
+        {
+          "ad": "GPIO48",
+          "islev": "Adreslenebilir RGB LED (WS2812) — kullanma",
+          "kenar": "sag"
+        },
+        {
+          "ad": "GPIO47",
+          "islev": "boşta — genişleme için uygun · [GPIO]",
+          "kenar": "sag"
+        },
+        {
+          "ad": "GPIO21",
+          "islev": "● K12 — 2. sıra 4 · KP* (*) · anahtar → GND · [GPIO]",
+          "kenar": "sag"
+        },
+        {
+          "ad": "GPIO20",
+          "islev": "USB D+ (native) — BAĞLAMA, USB bozulur",
+          "kenar": "sag"
+        },
+        {
+          "ad": "GPIO19",
+          "islev": "USB D- (native) — BAĞLAMA, USB bozulur",
+          "kenar": "sag"
+        },
+        {
+          "ad": "GND",
+          "islev": "Ortak toprak (aynı net)",
+          "kenar": "sag"
+        },
+        {
+          "ad": "GND",
+          "islev": "Ortak toprak (aynı net)",
+          "kenar": "sag"
+        }
+      ]
+    }
+  ],
+  "devreler": [
+    {
+      "baslik": "ExtraKeyboard MK1 — devre",
+      "kart": "ExtraKeyboard MK1",
+      "parcalar": [
+        {
+          "ad": "ExtraKeyboard MK1"
+        },
+        {
+          "ad": "K1",
+          "sembol": "buton"
+        },
+        {
+          "ad": "K2",
+          "sembol": "buton"
+        },
+        {
+          "ad": "K3",
+          "sembol": "buton"
+        },
+        {
+          "ad": "K4",
+          "sembol": "buton"
+        },
+        {
+          "ad": "K5",
+          "sembol": "buton"
+        },
+        {
+          "ad": "K6",
+          "sembol": "buton"
+        },
+        {
+          "ad": "K7",
+          "sembol": "buton"
+        },
+        {
+          "ad": "K8",
+          "sembol": "buton"
+        },
+        {
+          "ad": "K9",
+          "sembol": "buton"
+        },
+        {
+          "ad": "K10 COMBO",
+          "sembol": "buton"
+        },
+        {
+          "ad": "K11 OS",
+          "sembol": "buton"
+        },
+        {
+          "ad": "K12",
+          "sembol": "buton"
+        },
+        {
+          "ad": "R1 330Ω",
+          "sembol": "direnc"
+        },
+        {
+          "ad": "LED1 Win",
+          "sembol": "led"
+        },
+        {
+          "ad": "R2 330Ω",
+          "sembol": "direnc"
+        },
+        {
+          "ad": "LED2 Mac",
+          "sembol": "led"
+        },
+        {
+          "ad": "R3 330Ω",
+          "sembol": "direnc"
+        },
+        {
+          "ad": "LED3 Combo",
+          "sembol": "led"
+        },
+        {
+          "ad": "EC11 Enkoder",
+          "pinler": [
+            "A",
+            "C ortak",
+            "B",
+            "SW1",
+            "SW2"
+          ]
+        }
+      ],
+      "baglantilar": [
+        [
+          "ExtraKeyboard MK1",
+          "GPIO4",
+          "K1",
+          "1"
+        ],
+        [
+          "K1",
+          "2",
+          "ExtraKeyboard MK1",
+          "GND"
+        ],
+        [
+          "ExtraKeyboard MK1",
+          "GPIO5",
+          "K2",
+          "1"
+        ],
+        [
+          "K2",
+          "2",
+          "ExtraKeyboard MK1",
+          "GND"
+        ],
+        [
+          "ExtraKeyboard MK1",
+          "GPIO6",
+          "K3",
+          "1"
+        ],
+        [
+          "K3",
+          "2",
+          "ExtraKeyboard MK1",
+          "GND"
+        ],
+        [
+          "ExtraKeyboard MK1",
+          "GPIO7",
+          "K4",
+          "1"
+        ],
+        [
+          "K4",
+          "2",
+          "ExtraKeyboard MK1",
+          "GND"
+        ],
+        [
+          "ExtraKeyboard MK1",
+          "GPIO15",
+          "K5",
+          "1"
+        ],
+        [
+          "K5",
+          "2",
+          "ExtraKeyboard MK1",
+          "GND"
+        ],
+        [
+          "ExtraKeyboard MK1",
+          "GPIO16",
+          "K6",
+          "1"
+        ],
+        [
+          "K6",
+          "2",
+          "ExtraKeyboard MK1",
+          "GND"
+        ],
+        [
+          "ExtraKeyboard MK1",
+          "GPIO17",
+          "K7",
+          "1"
+        ],
+        [
+          "K7",
+          "2",
+          "ExtraKeyboard MK1",
+          "GND"
+        ],
+        [
+          "ExtraKeyboard MK1",
+          "GPIO18",
+          "K8",
+          "1"
+        ],
+        [
+          "K8",
+          "2",
+          "ExtraKeyboard MK1",
+          "GND"
+        ],
+        [
+          "ExtraKeyboard MK1",
+          "GPIO8",
+          "K9",
+          "1"
+        ],
+        [
+          "K9",
+          "2",
+          "ExtraKeyboard MK1",
+          "GND"
+        ],
+        [
+          "ExtraKeyboard MK1",
+          "GPIO9",
+          "K10 COMBO",
+          "1"
+        ],
+        [
+          "K10 COMBO",
+          "2",
+          "ExtraKeyboard MK1",
+          "GND"
+        ],
+        [
+          "ExtraKeyboard MK1",
+          "GPIO10",
+          "K11 OS",
+          "1"
+        ],
+        [
+          "K11 OS",
+          "2",
+          "ExtraKeyboard MK1",
+          "GND"
+        ],
+        [
+          "ExtraKeyboard MK1",
+          "GPIO21",
+          "K12",
+          "1"
+        ],
+        [
+          "K12",
+          "2",
+          "ExtraKeyboard MK1",
+          "GND"
+        ],
+        [
+          "ExtraKeyboard MK1",
+          "GPIO14",
+          "R1 330Ω",
+          "1"
+        ],
+        [
+          "R1 330Ω",
+          "2",
+          "LED1 Win",
+          "A"
+        ],
+        [
+          "LED1 Win",
+          "K",
+          "ExtraKeyboard MK1",
+          "GND"
+        ],
+        [
+          "ExtraKeyboard MK1",
+          "GPIO42",
+          "R2 330Ω",
+          "1"
+        ],
+        [
+          "R2 330Ω",
+          "2",
+          "LED2 Mac",
+          "A"
+        ],
+        [
+          "LED2 Mac",
+          "K",
+          "ExtraKeyboard MK1",
+          "GND"
+        ],
+        [
+          "ExtraKeyboard MK1",
+          "GPIO41",
+          "R3 330Ω",
+          "1"
+        ],
+        [
+          "R3 330Ω",
+          "2",
+          "LED3 Combo",
+          "A"
+        ],
+        [
+          "LED3 Combo",
+          "K",
+          "ExtraKeyboard MK1",
+          "GND"
+        ],
+        [
+          "ExtraKeyboard MK1",
+          "GPIO11",
+          "EC11 Enkoder",
+          "A"
+        ],
+        [
+          "ExtraKeyboard MK1",
+          "GPIO12",
+          "EC11 Enkoder",
+          "B"
+        ],
+        [
+          "EC11 Enkoder",
+          "C ortak",
+          "ExtraKeyboard MK1",
+          "GND"
+        ],
+        [
+          "ExtraKeyboard MK1",
+          "GPIO13",
+          "EC11 Enkoder",
+          "SW1"
+        ],
+        [
+          "EC11 Enkoder",
+          "SW2",
+          "ExtraKeyboard MK1",
+          "GND"
+        ]
+      ]
+    },
+    {
+      "baslik": "Numpad — tuşlar ve LED'ler",
+      "kart": "ExtraKeyboard MK1 Numpad",
+      "parcalar": [
+        {
+          "ad": "ExtraKeyboard MK1 Numpad"
+        },
+        {
+          "ad": "KP7",
+          "sembol": "buton"
+        },
+        {
+          "ad": "KP8",
+          "sembol": "buton"
+        },
+        {
+          "ad": "KP9",
+          "sembol": "buton"
+        },
+        {
+          "ad": "KPbolu",
+          "sembol": "buton"
+        },
+        {
+          "ad": "KP4",
+          "sembol": "buton"
+        },
+        {
+          "ad": "KP5",
+          "sembol": "buton"
+        },
+        {
+          "ad": "KP6",
+          "sembol": "buton"
+        },
+        {
+          "ad": "KPcarpi",
+          "sembol": "buton"
+        },
+        {
+          "ad": "KP1",
+          "sembol": "buton"
+        },
+        {
+          "ad": "KP2",
+          "sembol": "buton"
+        },
+        {
+          "ad": "KP3",
+          "sembol": "buton"
+        },
+        {
+          "ad": "KPeksi",
+          "sembol": "buton"
+        },
+        {
+          "ad": "KP0",
+          "sembol": "buton"
+        },
+        {
+          "ad": "KPnokta",
+          "sembol": "buton"
+        },
+        {
+          "ad": "KPEnter",
+          "sembol": "buton"
+        },
+        {
+          "ad": "KParti",
+          "sembol": "buton"
+        },
+        {
+          "ad": "R1 330Ω",
+          "sembol": "direnc"
+        },
+        {
+          "ad": "LED0 Win",
+          "sembol": "led"
+        },
+        {
+          "ad": "R2 330Ω",
+          "sembol": "direnc"
+        },
+        {
+          "ad": "LED1 Mac",
+          "sembol": "led"
+        }
+      ],
+      "baglantilar": [
+        [
+          "ExtraKeyboard MK1 Numpad",
+          "GPIO11",
+          "KP7",
+          "1"
+        ],
+        [
+          "KP7",
+          "2",
+          "ExtraKeyboard MK1 Numpad",
+          "GND"
+        ],
+        [
+          "ExtraKeyboard MK1 Numpad",
+          "GPIO12",
+          "KP8",
+          "1"
+        ],
+        [
+          "KP8",
+          "2",
+          "ExtraKeyboard MK1 Numpad",
+          "GND"
+        ],
+        [
+          "ExtraKeyboard MK1 Numpad",
+          "GPIO13",
+          "KP9",
+          "1"
+        ],
+        [
+          "KP9",
+          "2",
+          "ExtraKeyboard MK1 Numpad",
+          "GND"
+        ],
+        [
+          "ExtraKeyboard MK1 Numpad",
+          "GPIO14",
+          "KPbolu",
+          "1"
+        ],
+        [
+          "KPbolu",
+          "2",
+          "ExtraKeyboard MK1 Numpad",
+          "GND"
+        ],
+        [
+          "ExtraKeyboard MK1 Numpad",
+          "GPIO8",
+          "KP4",
+          "1"
+        ],
+        [
+          "KP4",
+          "2",
+          "ExtraKeyboard MK1 Numpad",
+          "GND"
+        ],
+        [
+          "ExtraKeyboard MK1 Numpad",
+          "GPIO9",
+          "KP5",
+          "1"
+        ],
+        [
+          "KP5",
+          "2",
+          "ExtraKeyboard MK1 Numpad",
+          "GND"
+        ],
+        [
+          "ExtraKeyboard MK1 Numpad",
+          "GPIO10",
+          "KP6",
+          "1"
+        ],
+        [
+          "KP6",
+          "2",
+          "ExtraKeyboard MK1 Numpad",
+          "GND"
+        ],
+        [
+          "ExtraKeyboard MK1 Numpad",
+          "GPIO21",
+          "KPcarpi",
+          "1"
+        ],
+        [
+          "KPcarpi",
+          "2",
+          "ExtraKeyboard MK1 Numpad",
+          "GND"
+        ],
+        [
+          "ExtraKeyboard MK1 Numpad",
+          "GPIO15",
+          "KP1",
+          "1"
+        ],
+        [
+          "KP1",
+          "2",
+          "ExtraKeyboard MK1 Numpad",
+          "GND"
+        ],
+        [
+          "ExtraKeyboard MK1 Numpad",
+          "GPIO16",
+          "KP2",
+          "1"
+        ],
+        [
+          "KP2",
+          "2",
+          "ExtraKeyboard MK1 Numpad",
+          "GND"
+        ],
+        [
+          "ExtraKeyboard MK1 Numpad",
+          "GPIO17",
+          "KP3",
+          "1"
+        ],
+        [
+          "KP3",
+          "2",
+          "ExtraKeyboard MK1 Numpad",
+          "GND"
+        ],
+        [
+          "ExtraKeyboard MK1 Numpad",
+          "GPIO18",
+          "KPeksi",
+          "1"
+        ],
+        [
+          "KPeksi",
+          "2",
+          "ExtraKeyboard MK1 Numpad",
+          "GND"
+        ],
+        [
+          "ExtraKeyboard MK1 Numpad",
+          "GPIO4",
+          "KP0",
+          "1"
+        ],
+        [
+          "KP0",
+          "2",
+          "ExtraKeyboard MK1 Numpad",
+          "GND"
+        ],
+        [
+          "ExtraKeyboard MK1 Numpad",
+          "GPIO5",
+          "KPnokta",
+          "1"
+        ],
+        [
+          "KPnokta",
+          "2",
+          "ExtraKeyboard MK1 Numpad",
+          "GND"
+        ],
+        [
+          "ExtraKeyboard MK1 Numpad",
+          "GPIO6",
+          "KPEnter",
+          "1"
+        ],
+        [
+          "KPEnter",
+          "2",
+          "ExtraKeyboard MK1 Numpad",
+          "GND"
+        ],
+        [
+          "ExtraKeyboard MK1 Numpad",
+          "GPIO7",
+          "KParti",
+          "1"
+        ],
+        [
+          "KParti",
+          "2",
+          "ExtraKeyboard MK1 Numpad",
+          "GND"
+        ],
+        [
+          "ExtraKeyboard MK1 Numpad",
+          "GPIO42",
+          "R1 330Ω",
+          "1"
+        ],
+        [
+          "R1 330Ω",
+          "2",
+          "LED0 Win",
+          "A"
+        ],
+        [
+          "LED0 Win",
+          "K",
+          "ExtraKeyboard MK1 Numpad",
+          "GND"
+        ],
+        [
+          "ExtraKeyboard MK1 Numpad",
+          "GPIO41",
+          "R2 330Ω",
+          "1"
+        ],
+        [
+          "R2 330Ω",
+          "2",
+          "LED1 Mac",
+          "A"
+        ],
+        [
+          "LED1 Mac",
+          "K",
+          "ExtraKeyboard MK1 Numpad",
+          "GND"
+        ]
+      ]
+    }
+  ]
+}

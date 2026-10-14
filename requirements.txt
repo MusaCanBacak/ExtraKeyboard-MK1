@@ -1,0 +1,31 @@
+# ExtraKeyboard MK1 — PC uygulaması bağımlılıkları
+# Python 3.9 – 3.13 ile test edilmiştir (macOS'un sistem Python'u 3.9'dur;
+# bu sayede çoğu Mac'te ek kurulum gerekmez).
+# Kurulum:  python3 -m pip install -r requirements.txt
+
+# Arayüz (koyu tema, CustomTkinter widget'ları)
+# Üst sınır bilinçli: arayüz CustomTkinter 6 ile doğrulandı; ileride
+# çıkacak bir ana sürüm (7.x) widget davranışını değiştirirse yeni
+# kurulumlar sessizce bozulmasın.
+customtkinter>=5.2.2,<7
+
+# Cihaz haberleşmesi (USB CDC seri port, VID/PID ile port bulma)
+pyserial>=3.5
+
+# Tuş kombinasyonu / metin / medya tuşu gönderimi
+pyautogui>=0.9.54
+
+# Sistem tepsisi simgesi (Windows + macOS)
+pystray>=0.19.5
+
+# Tepsi simgesi görselinin üretimi (pystray bağımlılığı)
+pillow>=10.0.0
+
+# Türkçe karakter içeren metinlerin pano üzerinden yapıştırılması
+pyperclip>=1.8.2
+
+# Sürükle-bırak desteği (yoksa uygulama yine çalışır, DnD kapalı kalır)
+tkinterdnd2>=0.4.2
+
+# Telefon eşleştirme karekodunun üretimi (mobil ayar arayüzü)
+qrcode>=7.4

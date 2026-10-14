@@ -1,0 +1,39 @@
+=====================================================================
+ ExtraKeyboard MK1 — PC Uygulamasi (Windows surumu)
+=====================================================================
+
+KURULUM + CALISTIRMA (tek adim):
+  Baslat.bat dosyasina cift tikla
+  Ilk acilis interneti kullanip gerekli paketleri kurar (~1-2 dk);
+  sonraki acilislar aninda olur. Python 3.9 veya ustu kurulu olmalidir
+  (python.org).
+
+NELER VAR:
+  - Tuslara uygulama/adres/kisayol/metin/komut atama (surukle-birak destekli)
+  - 45 tus kombinasyonu (COMBO), enkoder, LED ayarlari
+  - Telefon sekmesi: ayni Wi-Fi'daki telefondan canli izleme (QR ile)
+
+NOTLAR:
+  - Klavyeyi kartin "USB" etiketli konnektorunden takin.
+  - Ayarlar bu klasordeki config.json dosyasinda tutulur; eski
+    bilgisayardan tasimak icin o dosyayi buraya kopyalamak yeterlidir.
+  - Ilk acilista Windows Guvenlik Duvari izin isterse IZIN VERIN
+    (telefon ozelligi icin gereklidir).
+  - Cihaz gorunmuyorsa: Aygit Yoneticisi'nde "ExtraKeyboard MK1"
+    veya "USB Serial Device" olarak gorunmelidir; ekstra surucu gerekmez.
+ONEMLI - PYTHON SURUMU:
+  Uygulama Tcl/Tk 8.6 gerektirir. python.org kurulumunda "tcl/tk and IDLE"
+  kutusu isaretli olmalidir. Arayuz cizilmiyorsa (bombos/beyaz pencere)
+  Python'u bu secenekle yeniden kurun, .venv klasorunu silin ve
+  Baslat.bat'i yeniden calistirin.
+
+KALDIRMA:
+  Kaldir-Windows.bat dosyasina cift tiklayin. Sanal ortami,
+  masaustu kisayolunu, baslangic girdisini ve on bellek dosyalarini
+  kaldirir. Ayarlariniz ve program klasoru ayrica sorulur
+  (istemezseniz korunur). Klavyedeki firmware silinmez; cihaz
+  calismaya devam eder.
+
+  - Sorun giderme: once tools/selfcheck.py calistirin:
+      .venv\Scripts\python tools\selfcheck.py
+=====================================================================

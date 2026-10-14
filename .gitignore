@@ -1,0 +1,36 @@
+# ---------------------------------------------------------------------
+#  ExtraKeyboard MK1 — git dışı tutulanlar
+#  Kural: kaynaktan YENİDEN ÜRETİLEBİLEN her şey dışarıda kalır.
+# ---------------------------------------------------------------------
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# PyInstaller çıktıları (tools/ExtraKeyboard.spec ile yeniden üretilir)
+build/
+dist/
+
+# PlatformIO derleme klasörleri (pio run ile yeniden üretilir)
+.pio/
+
+# Elle alınmış yedek kopyalar (device.py.bak-0928-1719, *.zip.bak2-1133 ...)
+*.bak*
+
+# Dağıtım paketleri: kaynaktan üretilir. Güncel KURULUM.zip GitHub
+# Release eki olarak saklanır. Hazırlık klasörlerindeki app/ kopyası,
+# kökteki app/ ile birebir aynıdır.
+dagitim/*.zip
+dagitim/**/app/
+
+# macOS / IDE
+.DS_Store
+._*
+.vscode/
+.idea/
+
+# Çalışma zamanı ayarları: telefon sunucusunun ERİŞİM JETONUNU (mobile.token)
+# içerir -> depoya girmemeli. Uygulama dosya yoksa varsayılanlarla oluşturur.
+config.json
