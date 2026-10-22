@@ -149,13 +149,16 @@ ADIM 3 — macOS'ta IZIN VER   (yalnizca metin/kisayol/medya icin)
 
   3-DONANIM/
       OKU-ONCE.txt              — hangi belge guncel (once bunu okuyun)
+      BASIT-YAPIM.md            — ADIM ADIM YAPIM KILAVUZU (guncel)
+      stl/                      — baski dosyalari: govde, ust plaka
+                                  (klavye / numpad), enkoder dugmesi
       PIN-HARITASI.md           — GUNCEL pin haritasi (klavye + numpad)
-      kablolama-tablosu.md      — tel tel lehimleme tablosu
-      sematik.md                — devre semalari
-      01-DONANIM-PIN-SEMASI.md  — ayrintili pin belgesi
-      07-MONTAJ-KILAVUZU.md     — montaj adimlari
+      BOM.csv                   — malzeme listesi (fiyatli, guncel)
       08-SORUN-GIDERME.md       — ariza bulma
-      BOM.csv                   — malzeme listesi
+      01-DONANIM-PIN-SEMASI.md  — ayrintili pin belgesi (ilk tasarim)
+      07-MONTAJ-KILAVUZU.md     — montaj adimlari (ilk tasarim)
+      kablolama-tablosu.md      — tel tel lehimleme tablosu (ilk tasarim)
+      sematik.md                — devre semalari (ilk tasarim)
 
   LISANS/
       LISANS.md                 — lisansin Turkce aciklamasi

@@ -2,14 +2,24 @@
   3-DONANIM  -  HANGI BELGE GUNCEL?
 =====================================================================
 
+  ADIM ADIM YAPIM : BASIT-YAPIM.md   (GUNCEL - buradan baslayin)
+  BASKI DOSYALARI : stl/
+     govde.stl             - govde (klavye ve numpad icin ayni)
+     ust-plaka-klavye.stl  - klavye ust plakasi: 12 tus + enkoder + 3 LED
+     ust-plaka-numpad.stl  - numpad ust plakasi: 16 tus + 2 LED
+     enkoder-dugmesi.stl   - enkoder dugmesi
+  Tus basligi (keycap) dosyasi yoktur: MX uyumlu herhangi biri olur.
+
   Guncel donanim: 12 tus (10 islev + COMBO + OS), EC11 enkoder ve
   3 DUZ (tek renk) LED. Her LED kendi GPIO'suna 330 ohm direncle
-  baglanir.
+  baglanir. Ust plaka govdeye 4 kose vidasiyla (M2) tutturulur.
 
-  PIN-HARITASI.md bu donanimi anlatir ve karttan dogrulanmistir.
+  BASIT-YAPIM.md, PIN-HARITASI.md ve BOM.csv bu donanimi anlatir;
+  olculer 3D modellerden, pinler karttan dogrulanmistir.
 
-  Diger belgelerin bazi bolumleri projenin ilk tasarimindan kalmadir
-  (11 tus, WS2812B adreslenebilir LED, 1N4148 diyot, 1000 uF
-  kondansator, DIN/DOUT zinciri). Bu devre artik KULLANILMAZ.
-  Celiskide PIN-HARITASI.md ve depodaki README gecerlidir:
+  Diger belgelerin (01, 07, sematik, kablolama) bazi bolumleri
+  projenin ilk tasarimindan kalmadir (11 tus, WS2812B adreslenebilir
+  LED, 1N4148 diyot, 1000 uF kondansator, delikli kart). Bu devre
+  artik KULLANILMAZ. Celiskide BASIT-YAPIM.md ve PIN-HARITASI.md
+  gecerlidir:
      https://github.com/MusaCanBacak/ExtraKeyboard-MK1
