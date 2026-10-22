@@ -152,9 +152,9 @@ gönderir. İki taraf da karşısının yaşadığını böyle anlar.
 ## Kendin yap
 
 > **Adım adım tek dosyalık kılavuz:** [`docs/BASIT-YAPIM.md`](docs/BASIT-YAPIM.md) —
-> 3 katmanlı yapı (plaka / delikli kart / gövde), 3D baskı ölçüleri, kablolama ve
-> montaj sırası. PCB tasarımı gerekmez. Aşağısı özet ve güncel donanıma göre
-> doğrulanmış başvuru bilgisidir.
+> hazır baskı dosyaları (gövde + üst plaka), ölçüler, kablolama ve montaj sırası.
+> PCB ve delikli kart gerekmez. Aşağısı özet ve güncel donanıma göre doğrulanmış
+> başvuru bilgisidir.
 
 ### 1. Malzeme
 
@@ -218,12 +218,20 @@ LED'ler: GPIO42 Windows, GPIO41 macOS.
 
 ### 3. Gövde
 
-[`mechanical/`](mechanical/) klasöründe OpenSCAD kaynakları var: gövde
-(`case.scad`), üst plaka (`plate.scad`), knob (`knob.scad`), montaj görünümü
-(`assembly.scad`) ve tüm ölçülerin tek yerden değiştiği `parameters.scad`.
-Plakayı lazer/CNC ile kestirmek için `plate.dxf` ve onu üreten `gen_dxf.py`
-da burada. Baskı ve montaj notları: [`mechanical/OKU-ONCE.md`](mechanical/OKU-ONCE.md),
-[`docs/02-MEKANIK-TASARIM.md`](docs/02-MEKANIK-TASARIM.md).
+Baskı dosyaları [`mechanical/stl/`](mechanical/stl/) klasöründe:
+
+| Dosya | Parça |
+|---|---|
+| `govde.stl` | Eğimli gövde (ön 19, arka 33 mm). Klavye ve numpad için aynı |
+| `ust-plaka-klavye.stl` | Klavye üst plakası: 12 tuş + enkoder + 3 LED |
+| `ust-plaka-numpad.stl` | Numpad üst plakası: 16 tuş + 2 LED |
+| `enkoder-dugmesi.stl` | Enkoder düğmesi |
+
+Plaka gövdeye 4 köşe vidasıyla (M2) tutturulur; ESP32 gövdenin arka-sağ köşesindeki
+cebe oturur. Tuş başlığı dosyası yok, MX uyumlu herhangi biri olur. Ölçüler, baskı
+yönü ve montaj sırası: [`docs/BASIT-YAPIM.md`](docs/BASIT-YAPIM.md) §3 ve §6.
+`mechanical/` altındaki OpenSCAD kaynakları ve `plate.dxf` ilk 11 tuşlu tasarıma
+aittir ([`mechanical/OKU-ONCE.md`](mechanical/OKU-ONCE.md)).
 
 ### 4. Firmware
 
@@ -402,7 +410,7 @@ ExtraKeyboard-MK1/
 ├── firmware-numpad/          # numpad firmware'i (extrakeyboard / numpad_n16r8)
 │
 ├── hardware/                 # BOM, şematik, kablolama tablosu
-├── mechanical/               # OpenSCAD gövde/plaka/knob + DXF üretici
+├── mechanical/               # baskı dosyaları (stl/) + ilk tasarımın OpenSCAD kaynakları
 ├── docs/                     # ayrıntılı belgeler + ekran görüntüleri
 ├── tools/                    # imaj üretimi, kutusuz yükleme, .app paketleme (PyInstaller), öz kontrol
 ├── varliklar/                # uygulama simgesi
@@ -419,7 +427,7 @@ ExtraKeyboard-MK1/
 
 | Belge | İçerik |
 |---|---|
-| [`docs/BASIT-YAPIM.md`](docs/BASIT-YAPIM.md) | **Buradan başla.** Tek dosyada yapım: katmanlar, ölçüler, kablolama, montaj sırası. |
+| [`docs/BASIT-YAPIM.md`](docs/BASIT-YAPIM.md) | **Buradan başla.** Tek dosyada yapım: baskı dosyaları, ölçüler, kablolama, montaj sırası. |
 | [`PIN-HARITASI.md`](PIN-HARITASI.md) | Güncel pin haritası, birim farkları, bellek/flash ayarı. |
 | [`docs/00-CEKIRDEK-SPEC.md`](docs/00-CEKIRDEK-SPEC.md) | Çekirdek şartname: pinler, protokol, JSON şeması, ölçüler. |
 | [`docs/01-DONANIM-PIN-SEMASI.md`](docs/01-DONANIM-PIN-SEMASI.md) | Elektronik şema ve pin seçimlerinin gerekçeleri. |
@@ -433,8 +441,8 @@ ExtraKeyboard-MK1/
 | [`docs/09-GENISLETME.md`](docs/09-GENISLETME.md) | Tuş eklemek ve projeyi genişletmek. |
 
 > Bazı derin başvuru belgeleri tasarımın önceki aşamalarında yazıldı (11 tuş,
-> WS2812B LED). Bu README ve `PIN-HARITASI.md` ile çeliştikleri yerde **güncel
-> donanımı bu ikisi anlatır.**
+> WS2812B LED, delikli kart). Bu README, `PIN-HARITASI.md` ve `docs/BASIT-YAPIM.md`
+> ile çeliştikleri yerde **güncel donanımı bu üçü anlatır.**
 
 ---
 

@@ -1,54 +1,63 @@
-# Basit Yapım Kılavuzu — 3 Katmanlı, Delikli Kart + 3D Baskı
+# Basit Yapım Kılavuzu — 3D Baskı Gövde + Plaka, Doğrudan Kablolama
 
-> Yapmak için bu dosya yeter. PCB tasarımı yok, karmaşık CAD yok.
-> Diğer `docs/` dosyaları derinlik/referans içindir.
+> Yapmak için bu dosya yeter. PCB tasarımı yok, çizim de gerekmez: baskı dosyaları
+> hazır, [`mechanical/stl/`](../mechanical/stl/) klasöründe.
+> Diğer `docs/` dosyaları derinlik/referans içindir. Bazıları projenin ilk tasarımını
+> (11 tuş, WS2812B LED) anlatır; çelişkide bu dosya ve
+> [`PIN-HARITASI.md`](../PIN-HARITASI.md) geçerlidir.
 > **Montaj sırasında hızlı bakış: [EK A — Bağlantı Haritası](#ek-a--bağlantı-haritası-hızlı-başvuru)** (en altta).
 
 ---
 
-## 1. Tasarım: 3 katman, tek kutu
+## 1. Tasarım: eğimli gövde + üst plaka
 
-Anahtarlar delikli karta oturmadığı için (sebebi §2) yapı **katmanlı** olur:
-üstte anahtarları tutan plaka, altta elektroniğin olduğu kart, hepsi tek kutuda.
-Gövde **önden arkaya yükselen bir kama** (7.6° eğim) ve tuş alanının **arkasında
-30 mm'lik bir elektronik bölmesi** var — ESP32 oraya giriyor.
+İki baskı parçası var: **gövde** (önden arkaya yükselen bir kama) ve onun üstüne
+oturan **üst plaka**. Anahtarlar plakaya takılır. ESP32 DevKit, gövdenin arka-sağ
+köşesindeki **cebe** oturur. Delikli kart katmanı yoktur; teller doğrudan DevKit'e
+gider. Plaka gövdeye **4 köşe vidasıyla** tutturulur.
 
-**Üstten** (kullanıcı aşağıda):
+Aynı gövdeye iki plaka takılabilir:
+
+| Plaka | Tuş | Enkoder | LED | Baskı dosyası |
+|---|---|---|---|---|
+| **Klavye** | 12 (4 × 3) | 1 (arka şeritte) | 3 | `ust-plaka-klavye.stl` |
+| **Numpad** | 16 (4 × 4) | — | 2 | `ust-plaka-numpad.stl` |
+
+**Üstten** (klavye, kullanıcı aşağıda):
 
 ```
-   ┌──────────────────────────────┐  ▲ ARKA — yüksek kenar (29 mm)
-   │  ● ● ●   ELEKTRONİK BÖLMESİ  │  30.00   ← anahtar YOK, ESP32 burada
-   ├──────────────────────────────┤
-   │   K1   K2   K3   ⊙ENC        │
-   │   K4   K5   K6    K10        │  69.15   ← tuş alanı
-   │   K7   K8   K9    K11        │
-   └──────────────────────────────┘  ▼ ÖN — alçak kenar (15 mm)
-     plaka 88.20 mm · gövde dışı 94.20 mm
+            ▲ ARKA — yüksek kenar (33 mm)
+   ┌──────────────────────────────────────────┐
+   │     ●      ●      ●           ◎          │  ← arka şerit: LED'ler + enkoder
+   │   LED1   LED2   LED3         ENC         │     (altında ESP32 cebi, sağda)
+   │                                          │
+   │    [Tuş9 ]  [Tuş10]   [COMBO]  [ OS  ]   │
+   │    [Tuş5 ]  [Tuş6 ]   [Tuş7 ]  [Tuş8 ]   │  ← 4 × 3 tuş, adım 19.05 mm
+   │    [Tuş1 ]  [Tuş2 ]   [Tuş3 ]  [Tuş4 ]   │
+   └──────────────────────────────────────────┘
+            ▼ ÖN — alçak kenar (19 mm)
+     plaka 87.85 × 99.77 mm · gövde dışı 94.20 × 105.15 mm
 ```
 
 **Yandan** (ön solda):
 
 ```
-                                              ARKA 29 mm
-                                    ╱▔▔▔▔▔▔▔▔▔▔▔╗
-   ÜST PLAKA ────╱▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔            ║
-       ╱▔▔▔▔▔▔▔▔ │   │   │   │                  ║
-   ╔══▔ ▼   ▼    ▼   ▼   ▼   ▼    ┌────────────┐║
-   ║  anahtar gövdeleri (9 mm)    │[ESP32]     │║  ← BÖLME
-   ║        ┌─────────────────────┴────────────┤║     tam yükseklik
-   ║        │  delikli kart 80 × 45            │║
-   ╚════════╧══════════════════════════════════╝╝
-   ÖN 15 mm      ▲ taban düz, masaya oturur ▲
-   └── plaka 99.15 · gövde dış derinliği 105.15 ──┘
+                                              ARKA 33 mm
+                                    ╱▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔╗
+   ÜST PLAKA 3 mm, 8° ─────╱▔▔▔▔▔▔▔                 ║
+              ╱▔▔▔▔▔▔▔ ┃   ┃   ┃            ◎ ●    ║  ← enkoder + LED'ler arka şeritte
+   ╔════▔▔▔ anahtar gövdeleri          ┌─────────┐  ║
+   ║                                   │  ESP32  │  ║  ← ESP32 cebi (8 mm duvar)
+   ╚═══════════════════════════════════╧═════════╧══╝
+   ÖN 19 mm      ▲ taban düz (2.5 mm), masaya oturur ▲
+   └──────────────── gövde dış derinliği 105.15 ──────┘
 ```
 
-**Neden bu yapı doğru:**
-- Anahtarlar plakada → tuş adımı **19.05 mm standart** kalır, keycap'ler normal görünür
-- **Bacak bükmek yok**, delik hizalama derdi yok
-- **Bölme sayesinde ESP32 sıkışmıyor**: anahtar altında yalnızca 9.2 mm var,
-  DevKit ise 11.9 mm istiyor — bölmede 20.6–24.6 mm bulunca sorun kalmıyor
-- Kartın öne uzanan kısmı yatık dirençleri taşır, boşa gitmez
-- Delikli kart mekanik yük almaz, DevKit sökülebilir kalır
+**Neden bu yapı:**
+- Anahtarlar plakada, böylece tuş adımı **19.05 mm standart** kalır ve tuş başlıkları normal görünür.
+- **Bacak bükmek, delikli kart, header yok.** Teller anahtardan doğrudan DevKit pinine gider.
+- LED'ler ve enkoder, ESP32'nin hemen üstündeki arka şeritte. Teller kısa kalır.
+- Plaka 4 vidayla sökülebilir; kablolamaya her zaman geri dönülebilir.
 
 ---
 
@@ -66,164 +75,159 @@ MX anahtarının iki lehim bacağı arası **X'te 6.35 mm = 2.5 delik**:
 Biri deliğe denk gelirse diğeri her zaman ortada kalır. Ayrıca tuş adımı
 **19.05 mm = 7.5 delik**, o da grid'e oturmaz. İkisini birden çözmenin tek yolu
 adımı 20.32 mm'ye (8 delik) çıkarıp **her anahtarın bir bacağını bükmek** olurdu.
-Katmanlı yapı bu işin tamamını gereksiz kılıyor.
+Bu yüzden anahtarlar plakaya takılır ve her anahtarın teli doğrudan DevKit'e çekilir.
 
 ---
 
-## 3. Ölçüler (çizimi kendin yapacaksın)
+## 3. Ölçüler ve baskı dosyaları
+
+| Dosya | Parça |
+|---|---|
+| [`govde.stl`](../mechanical/stl/govde.stl) | Gövde — klavye ve numpad için aynı |
+| [`ust-plaka-klavye.stl`](../mechanical/stl/ust-plaka-klavye.stl) | Klavye üst plakası: 12 tuş + enkoder + 3 LED |
+| [`ust-plaka-numpad.stl`](../mechanical/stl/ust-plaka-numpad.stl) | Numpad üst plakası: 16 tuş + 2 LED |
+| [`enkoder-dugmesi.stl`](../mechanical/stl/enkoder-dugmesi.stl) | Enkoder düğmesi |
+
+Tuş başlığı (keycap) dosyası yoktur: MX uyumlu **herhangi bir** tuş başlığı olur.
+Aşağıdaki ölçüler bu modellerden okunmuştur; kendin çizeceksen buradan al.
+(`mechanical/` klasöründeki `.scad` dosyaları ve `plate.dxf`, ilk 11 tuşlu tasarıma aittir.)
 
 ### 3.1 Üst plaka
 
 | Ölçü | Değer |
 |---|---|
-| Dış ölçü | **88.20 × 99.15 mm** |
-| — tuş alanı (ön) | 69.15 mm |
-| — elektronik bölmesi (arka) | **30.00 mm**, üstünde anahtar yok |
-| Kalınlık | **1.50 mm** ← MX klipsinin tutması için pazarlıksız |
-| Anahtar deliği | **14.00 × 14.00 mm** kare, 11 adet |
-| Enkoder deliği | **⌀7.20 mm** + 2 pim deliği ⌀1.50 |
-| LED penceresi | **⌀3.00 mm**, 3 adet |
-| Kanca çentiği | **9.0 × 1.2 mm**, kenarlarda **8 adet** — vida YOK, plaka çıtlayarak oturur |
+| Dış ölçü | **87.85 × 99.77 mm**, köşeler keskin |
+| Kalınlık | **3.00 mm** |
+| Eğim (takılıyken) | **8°**, gövdenin üst kenarıyla aynı |
+| Anahtar deliği | **14.15 × 14.15 mm** kare (14.00 + FDM payı). Klavyede 12, numpadde 16 |
+| Tuş adımı | **19.05 mm** |
+| LED penceresi | **⌀3.20 mm** (3 mm LED). Klavyede 3, numpadde 2 |
+| Enkoder deliği (klavye) | **⌀7.20 mm**. İç yüzde, deliğin çevresinde **11.90 × 12.50 mm, 1.57 mm derin** cep var; EC11 gövdesi buna oturur |
+| Işık bölmesi | İç yüzde, LED pencerelerinin çevresinde **5.00 mm** yüksek ince duvarlar. Her LED yalnızca kendi penceresinden görünür |
+| Vida deliği | **⌀2.00 mm, 4 adet**, köşelerde, kenarlardan 3.00 mm |
 
-**Delik merkezleri** — orijin **sol üst (arka) köşe**, X sağa, Y öne doğru (mm):
+Plakanın **dış yüzü düzdür**. Işık bölmeleri ve enkoder cebi iç yüzdedir (gövdeye bakan taraf).
+
+**Delik merkezleri (klavye)** — orijin **arka-sol köşe** (üstten bakınca), X sağa,
+Y öne doğru, plaka yüzeyi boyunca (mm):
 
 | | Sütun 1 | Sütun 2 | Sütun 3 | Sütun 4 |
 |---|---|---|---|---|
-| **Satır 1** | K1 `15.53, 45.53` | K2 `34.58, 45.53` | K3 `53.63, 45.53` | **ENC** `72.68, 45.53` |
-| **Satır 2** | K4 `15.53, 64.58` | K5 `34.58, 64.58` | K6 `53.63, 64.58` | **K10** `72.68, 64.58` |
-| **Satır 3** | K7 `15.53, 83.63` | K8 `34.58, 83.63` | K9 `53.63, 83.63` | **K11** `72.68, 83.63` |
+| **Arka sıra** | Tuş 9 `15.35, 45.84` | Tuş 10 `34.40, 45.84` | COMBO `53.45, 45.84` | OS `72.50, 45.84` |
+| **Orta sıra** | Tuş 5 `15.35, 64.89` | Tuş 6 `34.40, 64.89` | Tuş 7 `53.45, 64.89` | Tuş 8 `72.50, 64.89` |
+| **Ön sıra** | Tuş 1 `15.35, 83.94` | Tuş 2 `34.40, 83.94` | Tuş 3 `53.45, 83.94` | Tuş 4 `72.50, 83.94` |
 
-- LED'ler (bölme şeridinde): `36.10, 10.00` · `44.10, 10.00` · `52.10, 10.00`
-- Kanca çentikleri (kenar ortası konumları): arka kenarda x = `22` ve `66` · ön kenarda x = `22` ve `66` · sol kenarda y = `25` ve `70` · sağ kenarda y = `32` ve `70` (sağda üstteki kanca USB açıklığıyla çakışmasın diye kaydırıldı). Her çentik kenardan içeri 1.2 mm, genişlik 9.0 mm.
+- LED1 / LED2 / LED3 (soldan): `9.82, 10.31` · `24.82, 10.31` · `39.82, 10.31` (aralık 15.00)
+- Enkoder: `65.00, 16.00`
+- Vida delikleri: `3.00, 3.00` · `84.85, 3.00` · `3.00, 96.77` · `84.85, 96.77`
+
+**Numpad plakası:** dış ölçü, kalınlık, sütunlar ve vida delikleri aynıdır. 4 sıra
+vardır; sıra merkezleri Y = `26.79` · `45.84` · `64.89` · `83.94`. LED'ler:
+`14.00, 9.00` · `29.00, 9.00`. Enkoder yoktur. Tuş düzeni (arka sıradan öne):
+`7 8 9 /` · `4 5 6 *` · `1 2 3 −` · `0 . ⏎ +`.
 
 ### 3.2 Gövde — eğimli kama
 
-**Yandan profil bir yamuk.** Çizmesi kolay: iki yükseklik ver, açı kendiliğinden çıkar.
+| Ölçü | Değer |
+|---|---|
+| Dış ölçü (üstten) | **105.15 (derinlik) × 94.20 (genişlik) mm**, dikey köşeler R2 |
+| **Ön duvar yüksekliği** | **19.00 mm** |
+| **Arka duvar yüksekliği** | **33.00 mm** |
+| **Üst kenar eğimi** | **≈ 8°** (`atan(14 / 99.15) = 8.04°`), plaka eğimiyle aynı |
+| Taban | **Düz**, masaya tam oturur |
+| Duvar / taban kalınlığı | **3.00 / 2.50 mm** |
+| İç açıklık | **99.15 × 88.20 mm** |
+| Plaka basamağı | İç çevre boyunca **1.50 mm** genişlik, duvar üst kenarının **3.00 mm** altında. Plaka buna oturur ve üst yüzü duvarla **aynı hizada** kalır |
+| Köşe takozu ×4 | **⌀2.00 mm** pilot delik, ~5 mm derin, plakaya dik (8° eğik). İç duvarlardan 3.00 mm içeride, plakanın vida delikleriyle aynı eksende |
+| ESP32 cebi | Arka-sağ köşede, tabandan **8.00 mm** yükselen duvarlarla çevrili. İç ölçü **28.30 mm** (derinlik yönünde) × **57.65 mm** (sağ iç duvardan sola doğru). Sol ucunda **18.60 × 6.15 mm** uzantı. Cebin ön iç kenarı arka dış yüzden **31.30 mm** içeride |
+| USB açıklığı | **Sağ yan duvarda**, **14.47 × 9.00 mm** oval (yarım daire uçlu). Merkezi dış tabandan **13.80**, arka dış yüzden **23.58 mm**. Kenarlar: yatay 16.34↔30.81, dikey 9.30↔18.30 |
+
+Plakanın altındaki serbest yükseklik ön kenarda **≈ 13.5 mm**, arka kenarda
+**≈ 27.5 mm**. Öndeki boşluk, plakanın altına sarkan anahtar gövdeleri, bacakları ve
+teller için yeter. Arkadaki yüksek bölge ESP32, enkoder ve LED'ler içindir.
+
+### 3.3 Enkoder düğmesi
 
 | Ölçü | Değer |
 |---|---|
-| Dış ölçü (üstten) | **94.20 × 105.15 mm** = plaka + 2×3 duvar (duvarlar plakanın DIŞINA eklenir) |
-| İç açıklık (plaka yuvası) | **88.60 × 99.55 mm** = plaka 88.20×99.15 + kenar başına 0.2 pay |
-| **Ön duvar yüksekliği** | **15.00 mm** |
-| **Arka duvar yüksekliği** | **29.00 mm** |
-| **Eğim açısı** | **≈ 7.6°** (`atan(14 / 105.15) = 7.58°` — klavye standardı 6–9°) |
-| Taban | **Düz**, masaya tam oturur |
-| Keycap dahil yükseklik | ön kenarda ~32, en yüksek tuş tepesinde ~40, arka sırtta 29 (tuşsuz şerit) |
-| Duvar kalınlığı | 3.00 mm |
-| Taban kalınlığı | 2.50 mm |
-| USB açıklığı (Type-C) | **13 × 8 mm** (köşe R2), **sağ yan duvarda**; merkez dış tabandan **12.80**, arka dış köşeden **21.0** (kenarlar: yatay 14.5↔27.5, dikey 8.8↔16.8) |
+| Kütük | **⌀20.00 × 7.50 mm**; üst kapak 1.50, etek duvarı 1.50 (iç ⌀17.00) |
+| Mil deliği | **⌀6.19 mm**, yuvarlak (D düzlüğü yok), **5.30 mm** derin; ⌀10.00 göbekte. Göbek etek kenarından 0.70 mm içeride biter |
 
-#### Neden arkada bölme var
+Hazır bir 6 mm enkoder düğmesi de olur.
 
-Anahtar gövdesi plakanın altında **9.0 mm** yer kaplar. ESP32 yığını ise
-**11.94 mm** ister — ikisi üst üste 21.94 mm eder ve bu, tuş alanının altına
-sığmaz (öne doğru tavan alçalır). Çözüm: **tuş alanının arkasına 30 mm'lik,
-üstünde anahtar olmayan bir bölme** koymak. Orada tam iç yükseklik ESP32'nindir.
+### 3.4 3D baskı notları
 
-| Ön dış kenardan | İç boşluk | Anahtar altı serbest | Orada ne var |
-|---|---|---|---|
-| 3 mm (iç ön duvar) | 11.40 mm | 2.40 mm | sadece anahtarlar + tel |
-| 18.7 mm | 13.49 mm | 4.49 mm | en öndeki anahtar sırası |
-| 57 mm (kart ön kenarı) | 18.61 mm | **9.61 mm** | yatık dirençler, küçük kondansatörler |
-| 72 mm (bölme sınırı) | 20.58 mm | — | **anahtar biter, bölme başlar** |
-| 102 mm (iç arka duvar) | **24.60 mm** | — | **ESP32 DevKit + yüksek kondansatör** |
-
-#### Bölmedeki dikey yığın (kasa iç tabanından yukarı)
-
-| Z (mm) | Ne var |
-|---|---|
-| 0 → 3.0 | Standoff + kablo geçişi |
-| 3.0 → 4.6 | Delikli kart (1.6 mm) |
-| 4.6 → 7.1 | DevKit header plastiği (2.54 mm) |
-| 7.1 → 8.7 | DevKit PCB (1.6 mm) |
-| 8.7 → 11.9 | USB-C konnektörü / WROOM modülü (3.2 mm) |
-
-Gereken **12.94 mm** (yığın + 1 mm pay), bölmede mevcut **20.58–24.60 mm** → bol pay.
-
-#### Geçmeli bağlantı (vida yok)
-
-Plaka gövdeye **çıtlayarak** oturur; vida ve heat-set insert kullanılmaz.
-
-```
-   duvar kesiti:                ┌── plaka (kenarı 45° pahlı)
-                                ▼
-   ██ ← duvar üst kenarı   ═════════╗
-   ██┐                          ▲   ██
-   ██│← kanca dişi 1.0 mm   çentik  ██
-   ██┘                              ██
-   ██ ← omuz 1.5 mm — tuş basış     ██
-   ██    yükünü vida değil BU taşır ██
-```
-
-- **Omuz (ledge):** iç çevre boyunca, duvar üst kenarından 1.50 mm aşağıda,
-  1.5 mm genişlik. Plaka buna oturur ve üst yüzeyi duvarla **aynı hizada** kalır.
-- **8 kanca:** duvara iki dik yarık (1.5 × 12 mm) açıp esneyen dil oluştur;
-  dilin ucunda içeri bakan **1.0 mm diş**, girişte 45°, çıkışta 30° pah
-  (takması kolay, sökmesi mümkün). Konumlar çentik konumlarıyla aynı.
-- **Kanırtma yuvası ×2:** ön duvar üst kenarında, x = `8` ve `80` konumlarında
-  8 × 2.5 mm — düz tornavidayla kapağı açmak için.
-- **Tolerans:** dişi ilk baskıda **0.8 mm** bas, tek kancalı test parçasıyla dene;
-  gevşekse 1.0–1.2'ye çıkar. FDM toleransı baskıdan baskıya değişir.
-- Delikli kart için tabana **4 adet 3 mm post** bas (veya çift taraflı bant yeterli).
-- Taban düz olduğu için **4 adet düz silikon ayak** yeterli, kama ayak gerekmez.
-
-> **Yerleştirme kuralı:** Yüksek parçalar (ESP32, 1000 µF kondansatör) **bölmeye**;
-> yatık dirençler ve küçük kondansatörler kartın öne uzanan kısmına. Anahtarların
-> altında yalnızca **9.6 mm** var, 1000 µF oraya sığmaz.
-
-### 3.3 3D baskı notları
-
-- **PETG kullan.** 1.50 mm PLA plaka, klips kuvvetinde çatlar.
-- FDM'de delikler ~0.15 mm küçük çıkar → anahtar deliğini **14.15 mm** çiz.
-- **Önce tek delikli test parçası bas**, anahtarı dene. 10 dakika, 11 delikli hatalı baskıdan kurtarır.
-- **Kama gövdeyi düz tabanı tablaya bakacak şekilde bas.** Duvarlar dikey yükselip
-  farklı yüksekliklerde bittiği için **çıkıntı (overhang) yok, destek gerekmez**.
-  Eğimli yüzeyi tablaya yatırırsan hem destek gerekir hem üst kenarlar bozulur.
+- **PETG önerilir**; sıcakta deforme olmaz. PLA da olur.
+- **Gövdeyi tabanı tablaya gelecek şekilde bas.**
+- **Plakayı düz dış yüzü tablaya gelecek şekilde bas.** Işık bölmeleri ve enkoder
+  cebi yukarıda kalır.
+- Anahtar delikleri modelde zaten **14.15 mm**: FDM'de delikler ~0.15 mm küçük çıkar.
+  **Önce tek delikli bir test parçası bas** ve anahtarı dene. 10 dakika, 12 delikli
+  hatalı baskıdan kurtarır.
+- ⌀2.00 deliklerde: M2 vida gövdedeki pilot deliğe doğrudan diş açar. Plakadaki delik
+  dar gelirse **2.2–2.4 mm matkapla** genişlet.
 
 ---
 
 ## 4. Malzeme
 
-| Parça | Adet | Not |
-|---|---|---|
-| ESP32-S3-DevKitC-1 | 1 | Native USB şart |
-| Cherry MX Blue anahtar | 11 | Elindekiler |
-| Keycap 1U | 11 | |
-| EC11 enkoder + düğme | 1 | |
-| WS2812B LED | 3 | Tek veri hattı |
-| Delikli kart | 1 | 7×9 cm alıp **80 × 45 mm**'ye kes, **arka duvara dayalı** monte et |
-| Dişi header 2×22 | 1 takım | DevKit sökülebilir kalsın |
-| 1N4148 diyot | 1 | **Atlanamaz** (§5.3) |
-| Direnç 10 kΩ | 2 | Enkoder filtresi |
-| Direnç 330 Ω | 1 | LED veri hattı |
-| Kondansatör 100 nF | 2 | Enkoder filtresi |
-| Kondansatör 1000 µF | 1 | LED beslemesi |
-| Tel 26 AWG | ~2 m | **Çok damarlı** — tek damarlı anahtar dibinde kırılır |
-| Silikon ayak ⌀8 mm | 4 | |
-| Sünger (poron/EVA) 3 mm | 1 | Blue gürültülü, boş kovuk çınlar |
+| Parça | Klavye | Numpad | Not |
+|---|---|---|---|
+| ESP32-S3-DevKitC-1 | 1 | 1 | **N16R8 önerilir**; N8R2 (8 MB flash + 2 MB PSRAM) da olur. Native "USB" soketi şart |
+| MX uyumlu anahtar (ör. Cherry MX Blue) | 12 | 16 | 3 pinli plate-mount |
+| Tuş başlığı (keycap) 1U | 12 | 16 | MX uyumlu herhangi biri |
+| EC11 enkoder | 1 | — | Butonlu, M7 burç, 6 mm mil |
+| Düz LED 3 mm (tek renk) | 3 | 2 | Renk serbest |
+| Direnç 330 Ω | 3 | 2 | Her LED'e bir tane |
+| Direnç 10 kΩ | 2 | — | Enkoder RC filtresi |
+| Kondansatör 100 nF | 2 | — | Enkoder RC filtresi |
+| Küçük delikli kart (~20 × 30 mm) | 1 | — | RC filtresini taşır (önerilir) |
+| M2 vida, 6–8 mm | 4 | 4 | Plakayı köşe takozlarına tutar |
+| Tel 26 AWG | ~2 m | ~2 m | **Çok damarlı**; tek damarlı tel anahtar dibinde kırılır |
+| Isıyla daralan makaron | biraz | biraz | LED dirençleri ve tel eklerini yalıtmak için |
+| Silikon ayak ⌀8 mm | 4 | 4 | |
+| Sünger (poron/EVA) 3 mm | 1 | 1 | İsteğe bağlı. Blue anahtarın boş kovukta çınlamasını azaltır |
+| USB **veri** kablosu | 1 | 1 | Şarj-only kablo çalışmaz |
+| Baskı | gövde, klavye plakası, düğme | gövde, numpad plakası | [`mechanical/stl/`](../mechanical/stl/) |
+
+Fiyatlı liste: [`hardware/BOM.csv`](../hardware/BOM.csv).
 
 ---
 
 ## 5. Kablolama
 
-Toplam **11 sinyal teli + 1 ortak GND zinciri**. Hepsi bu.
+Klavyede toplam **18 sinyal teli** (12 tuş + enkoder 3 + LED 3), **1 ortak GND
+zinciri** ve enkoder filtresi için bir **3V3** teli var. Hepsi bu.
 
 ### 5.1 Anahtarlar
 
-Her anahtarın **bir bacağı ortak GND**, **diğeri kendi GPIO'suna**:
+Her anahtarın **bir bacağı ortak GND**, **diğeri kendi GPIO'suna**. Matris ve diyot yok.
 
-| Tuş | GPIO | | Tuş | GPIO |
+| Konum (üstten) | Sütun 1 | Sütun 2 | Sütun 3 | Sütun 4 |
 |---|---|---|---|---|
-| K1 | 4 | | K7 | 17 |
-| K2 | 5 | | K8 | 18 |
-| K3 | 6 | | K9 | 8 |
-| K4 | 7 | | K10 (COMBO) | 9 |
-| K5 | 15 | | K11 (OS) | 10 |
-| K6 | 16 | | | |
+| **Arka sıra** | Tuş 9 → **GPIO10** | Tuş 10 → **GPIO9** | COMBO → **GPIO8** | OS → **GPIO21** |
+| **Orta sıra** | Tuş 5 → **GPIO15** | Tuş 6 → **GPIO16** | Tuş 7 → **GPIO17** | Tuş 8 → **GPIO18** |
+| **Ön sıra** | Tuş 1 → **GPIO4** | Tuş 2 → **GPIO5** | Tuş 3 → **GPIO6** | Tuş 4 → **GPIO7** |
 
-**GND papatya dizimi:** Tek bir teli kes, izolesini 11 noktada ortadan sıyır,
-her anahtarın GND bacağına sırayla lehimle, ucunu karttaki GND'ye götür.
-11 ayrı tel çekme — 1 tel yeter.
+Bu eşleme hazır firmware imajlarının (varsayılan derleme) eşlemesidir. Üst sıra
+karışık çıkarsa kabloyu sökme: rol sırası `firmware/src/keys.cpp` içindeki
+`KEY_PINS` dizisiyle değişir ([PIN-HARITASI.md](../PIN-HARITASI.md) bölüm 3).
+
+**GND papatya dizimi:** Tek bir teli kes, izolesini 12 noktada (numpadde 16) ortadan
+sıyır, her anahtarın GND bacağına sırayla lehimle, ucunu DevKit'in GND pinine götür.
+Enkoderin C ve SW-2 bacakları ile LED katotları da bu zincire bağlanır.
+
+**Numpad** (16 tuş, enkoder yok) — GPIO → tuş, arka sıradan öne:
+
+```
+   arka : 7 → GPIO11   8 → GPIO12   9 → GPIO13   / → GPIO14
+          4 → GPIO8    5 → GPIO9    6 → GPIO10   * → GPIO21
+          1 → GPIO15   2 → GPIO16   3 → GPIO17   − → GPIO18
+   ön   : 0 → GPIO4    . → GPIO5    ⏎ → GPIO6    + → GPIO7
+```
+
+Numpad LED'leri: GPIO42 Windows, GPIO41 macOS. Ayrıntı:
+[`firmware-numpad/NUMPAD-NOTLAR.md`](../firmware-numpad/NUMPAD-NOTLAR.md).
 
 ### 5.2 Enkoder (EC11)
 
@@ -235,7 +239,7 @@ her anahtarın GND bacağına sırayla lehimle, ucunu karttaki GND'ye götür.
 | SW bacak 1 | GPIO13 |
 | SW bacak 2 | GND |
 
-**RC filtresi** — A ve B için ayrı ayrı, delikli kart üzerinde:
+**RC filtresi**, A ve B için ayrı ayrı, küçük delikli kart üzerinde:
 
 ```
    3V3 ──[10 kΩ]──┬── GPIO11 (veya 12)
@@ -259,44 +263,43 @@ her anahtarın GND bacağına sırayla lehimle, ucunu karttaki GND'ye götür.
 ```
 
 > Uzun bacak (anot) dirence, kısa bacak (katot) GND'ye. Ters takılan LED
-> yanmaz ama zarar da görmez — çevirip tekrar dene.
+> yanmaz ama zarar da görmez; çevirip tekrar dene. Direnci LED bacağına lehimleyip
+> makaronla kapatmak yeterlidir.
 >
-> **Not:** Projenin ilk sürümü 3 × WS2812B (adreslenebilir RGB) kullanıyordu;
-> o devre 1N4148 diyot ve 1000 µF kondansatör gerektiriyordu. Güncel firmware
-> düz LED sürer, WS2812B devresi artık kullanılmaz.
+> Projenin ilk sürümü 3 × WS2812B kullanıyordu (diyot + 1000 µF gerektiriyordu).
+> Güncel firmware düz LED sürer; o devre artık kullanılmaz.
 
 ---
 
 ## 6. Yapım sırası
 
-1. **Plakayı bas ve test et** — önce tek delikli test parçası, anahtar tam oturuyor mu?
-2. **Gövdeyi bas.** Önce tek kancalı test parçasıyla diş toleransını doğrula (§3.2).
-3. **Delikli kartı hazırla (KATMAN 2):** 80 × 45 mm'ye kes, dişi header'ı lehimle,
-   RC filtresini, LED besleme diyodunu ve kondansatörü yerleştir.
-   **DevKit'i kartın arka kenarına yakın koy** — kasanın en yüksek yeri orası.
-   > DevKit'i takmadan önce iki header sırası arasındaki delik sayısını say —
-   > **9 delik (22.86 mm)** olmalı, o zaman karta düz oturur.
-4. **Anahtarları plakaya klipsle (KATMAN 1).** Hepsinin dik olduğunu gözle kontrol et.
-   ⚠️ Blue anahtar **tam oturmadan da tık sesi çıkarır** — sesle değil,
-   plakaya bastırıp yandan bakarak kontrol et.
-5. **Enkoderi** plakaya somunla tak.
-6. **GND papatya zincirini** lehimle (tek tel, 11 nokta).
-7. **11 sinyal telini** anahtarlardan karta çek. Renk kodu kullan, telleri
-   katmanlar arası mesafeye göre biraz uzun bırak (~60 mm).
-8. **LED'leri** bezel arkasına yerleştir, zinciri lehimle. **DIN/DOUT yönüne dikkat.**
-9. **GÜÇ VERMEDEN ÖNCE:** multimetre ile 5V ↔ GND arası kısa devre kontrolü.
-   Kısa varsa USB portunu yakarsın.
+1. **Parçaları bas** (§3.4). Önce tek delikli test parçasıyla anahtarın oturuşunu dene.
+2. **Anahtarları plakaya tak** (dış yüzden bastırarak). Hepsinin dik olduğunu kontrol et.
+   ⚠️ Blue anahtar **tam oturmadan da tık sesi çıkarır**. Sesle değil, yandan
+   bakarak kontrol et.
+3. **Enkoderi** plakanın iç yüzünden cebine oturt, burcunu delikten geçir, dış yüzden
+   somunla sık.
+4. **LED'leri** iç yüzden, ışık bölmelerinin içinden pencerelere yerleştir (LED1
+   soldaki pencere). Yerinde tutmak için bir damla sıcak silikon yeter.
+5. **GND zincirini** lehimle: tek tel, 12 anahtar + enkoder C ve SW-2 + 3 LED katodu.
+6. **RC filtresini** küçük delikli karta kur (§5.2), **LED dirençlerini** anot
+   bacaklarına lehimleyip makaronla kapat.
+7. **Sinyal tellerini** anahtarlardan, enkoderden ve LED dirençlerinden DevKit
+   pinlerine çek (EK A.2). Renk kodu kullan; plakanın açılıp kapanabilmesi için
+   telleri biraz uzun bırak.
+8. **DevKit'i cebine yerleştir**: kartın **"USB"** yazan soketi sağ duvardaki
+   açıklığa, açıklığın ortasına gelsin ("UART" yazan değil).
+9. **GÜÇ VERMEDEN ÖNCE:** multimetreyle 5V ↔ GND ve 3V3 ↔ GND arasında kısa devre
+   olmadığını kontrol et. Kısa varsa USB portunu yakarsın.
 10. **Firmware'i yükle** — hazır imaj ve yükleyiciyle: kurulum paketinde
     `2-FIRMWARE/`, depoda [README → 4. Firmware](../README.md#4-firmware).
     Yükleyici modülü kendisi tanır. Kaynaktan derlemek için:
     [04-FIRMWARE-KURULUM.md](04-FIRMWARE-KURULUM.md); en kritik ayar
     `ARDUINO_USB_MODE=0`, yoksa HID hiç çalışmaz.
-11. **Test et:** 11 tuş, enkoder iki yön + basış, 3 LED, combo, OS geçişi.
-12. **Süngeri** taban içine yapıştır (anahtar altına ve bölmedeki ESP32'ye değmesin).
-    ⚠️ **Kablolama ve test tamamen bitmeden kapağı çıtlatma** — her açma-kapama
-    kancaları yorar (PETG'de ~20–50 çevrim ömür). Her şey çalışınca plakayı
-    hizala, çevresine sırayla bastırarak 8 kancayı çıtlat, ayakları yapıştır.
-    Açman gerekirse ön köşedeki kanırtma yuvalarından düz tornavidayla kaldır.
+11. **Test et:** 12 tuş, enkoder iki yön + basış, 3 LED, combo, OS geçişi. (Numpad:
+    16 tuş; Windows/macOS geçişi "0" basılıyken Enter.)
+12. **Kapat:** süngeri tabana koy (DevKit'e ve tellere baskı yapmasın), plakayı
+    basamağa oturt, **4 köşeden M2 vidalarla** sabitle, ayakları yapıştır.
 
 ---
 
@@ -306,16 +309,16 @@ her anahtarın GND bacağına sırayla lehimle, ucunu karttaki GND'ye götür.
 |---|---|---|
 | Tek basışta eylem **iki kez** çalışıyor | Anahtar sıçraması | `firmware/src/config.h` → `EK_KEY_DEBOUNCE_MS` 8 → 12 |
 | Bir tuş hiç çalışmıyor | Lehim veya yanlış GPIO | Multimetre ile anahtar bacağı ↔ DevKit pini süreklilik |
+| Üst sıra tuşları yer değiştirmiş | Kablolama varsayılandan farklı | `keys.cpp` → `KEY_PINS` sırası ([PIN-HARITASI.md](../PIN-HARITASI.md) bölüm 3) |
 | Enkoder ileri geri zıplıyor | RC filtresi yok/yanlış | 10 kΩ + 100 nF kontrol |
 | Enkoder ters yönde | A/B ters | A ve B tellerini yer değiştir |
-| LED yanmıyor / titriyor | 1N4148 yok veya DIN/DOUT ters | Diyodu ve zincir yönünü kontrol et |
-| Cihaz USB'de görünmüyor | `ARDUINO_USB_MODE=1` | `platformio.ini`'de `0` yap, yeniden yükle |
-| Kapak kapanmıyor | Teller sıkışmış **veya** kart fazla önde | Telleri kenarlara topla; kartı arka duvara daya (önde sadece 3.5 mm boşluk var) |
-| Cihaz masada öne kayıyor | Ayak yok / eğim iterek çalışıyor | 4 silikon ayağı düz tabana yapıştır |
+| LED yanmıyor | Ters takılı ya da yanlış GPIO | LED'i çevir; GPIO14 / 42 / 41 kontrol |
+| İki LED birlikte parlıyor | Işık komşu pencereden sızıyor | LED'i ışık bölmesinin içine tam oturt |
+| Cihaz USB'de görünmüyor | Kablo "UART" soketinde ya da şarj-only kablo | "USB" soketi ve veri kablosu kullan |
+| Plaka basamağa tam oturmuyor | Teller veya LED bacakları sıkışıyor | Telleri kenarlara topla, LED bacaklarını kısalt |
+| Vida plakadan geçmiyor | FDM deliği küçük basmış | Plakadaki deliği 2.2–2.4 mm matkapla aç |
+| Cihaz masada kayıyor | Ayak yok | 4 silikon ayağı düz tabana yapıştır |
 | Ses çok "boşluklu" çınlıyor | Boş kovuk rezonansı | Tabana sünger |
-| Plaka gevşek / takırdıyor | Kanca dişi ince basılmış | Dişi 1.0–1.2 mm ile yeniden bas; omuza 1 mm sünger şerit de yapışır |
-| Keycap sökerken plaka kalkıyor | Çekme kuvveti kancalara biniyor | Keycap çekerken plakaya parmakla bastır |
-| Kanca kırıldı | Çevrim ömrü doldu / PLA kullanıldı | Gövdeyi PETG ile yeniden bas; kalan 7 kanca geçici olarak tutar |
 
 Daha uzun liste: [08-SORUN-GIDERME.md](08-SORUN-GIDERME.md)
 
@@ -343,106 +346,58 @@ Dikkat edilecekler: [06-ONEMLI-NOTLAR.md](06-ONEMLI-NOTLAR.md)
 
 ## EK A — Bağlantı Haritası (hızlı başvuru)
 
-> Anlatım yok. Solda **çizeceğin parçaların ölçüleri**, sağda **elektronik
-> bağlantılar ve parçalar**. Montajda ve CAD çizerken açık duracak alan bu.
+> Anlatım yok. Montajda ve baskı öncesinde açık duracak sayfa bu.
 >
 > ### 📏 TÜM ÖLÇÜLER MİLİMETRE (mm) — cm DEĞİL
-> `88.20 × 99.15` = 8.8 × 9.9 cm demektir. Açılar derece (°),
-> elektronik değerler kendi birimiyle (Ω, µF, nF) yazılıdır.
+> `87.85 × 99.77` = 8.8 × 10 cm demektir. Açılar derece (°),
+> elektronik değerler kendi birimiyle (Ω, nF) yazılıdır.
 
-### A.1 Mekanik — çizilecek parçalar, ölçü ölçü
+### A.1 Mekanik — parçalar
 
 **Zihninde canlandır:** bardak altlığından biraz büyük bir taban (dıştan 94 × 105 mm),
-öne doğru alçalan kama — arka duvar iki parmak (29), ön duvar yarısı (15),
-sırt eğimi 7.6°. Üstte düz bir kapak plakası; arka 30 mm'lik şeridi tuşsuz,
-kalanı 3×3 numpad + sağ sütun. Keycap'lerle en yüksek nokta ~40 mm.
+öne doğru alçalan bir kama: arka duvar 33, ön duvar 19 mm, sırt eğimi 8°. Üstte düz
+bir plaka: önde 4 × 3 tuş, arkadaki şeritte 3 LED ve enkoder.
 
-#### Parça 1 — Gövde (tek parça baskı)
-
-| Öğe | Ölçü (mm) |
+| Parça | Ana ölçüler (mm) |
 |---|---|
-| Dış kütük | **94.20 × 105.15** (= plaka + 2×3 duvar), ön duvar **15.00** → arka **29.00**, üst yüz eğik (**7.6°**) |
-| Duvar / taban | 3.00 / 2.50 → iç açıklık **88.60 × 99.55** (plaka + 0.2 pay/kenar), iç yükseklik 11.40 → 24.60 |
-| İç omuz (plaka rafı) | Çepeçevre, duvar üst kenarından **1.50 aşağıda**, **1.5 genişlik** çıkıntı |
-| Kanca dili ×8 | Duvarda iki dik yarık **1.5 × 12** arasında **9.0 genişlik** dil; ucunda içeri **1.0 diş** (giriş 45°, çıkış 30° pah) |
-| Kanca konumları | Plaka koordinatında: ön/arka x = **22**, **66** · sol y = **25**, **70** · sağ y = **32**, **70** — gövdenin dış kenarından ölçüyorsan **+3 ekle** |
-| Kanırtma yuvası ×2 | Ön duvar üst kenarında **8 × 2.5**; plaka koordinatında x = 8 ve 80 → **dış kenardan 11 ve 83** |
-| USB açıklığı (Type-C) | **Sağ duvar**: **13 × 8**, köşe R2; merkez dış tabandan **12.80**, arka dış köşeden **21.0** → kenarlar yatay 14.5↔27.5, dikey 8.8↔16.8. 12.8 = taban 2.5 + standoff 3.0 + kart 1.6 + header 2.54 + PCB 1.6 + soket ortası 1.6. Kartı deliğe hizala: **"USB" portu** deliğin ortasına, soket burnu iç duvara **DAYALI** (boşluk yok — ağzı dış yüzeyden yalnızca 3 mm içeride kalır) |
-| Kart postu ×4 | Tabandan **⌀5.0 × 3.0** yükseklik; 80 × 45 kartın köşe deliklerine denk (kart arka duvara dayalı) |
-| Ayak çukuru ×4 (isteğe bağlı) | Taban altında **⌀8.0 × 1.0**, köşelerden 10 içeride |
+| Gövde `govde.stl` | Dış **94.20 × 105.15**, ön **19.00** → arka **33.00**, duvar 3.00, taban 2.50. Plaka basamağı 1.50 genişlik, üst kenardan 3.00 aşağıda. 4 köşe takozu ⌀2.00 pilot delik. Arka-sağda ESP32 cebi (8.00 yüksek duvar). Sağ duvarda USB açıklığı **14.47 × 9.00**, merkez tabandan 13.80, arka dış yüzden 23.58 |
+| Klavye plakası `ust-plaka-klavye.stl` | **87.85 × 99.77 × 3.00**, 12 × **14.15** kare delik, adım **19.05**. İlk tuş `15.35, 45.84` (arka-sol köşeden). Enkoder ⌀7.20 `65.00, 16.00` + iç yüzde 11.90 × 12.50 × 1.57 cep. LED ⌀3.20 × 3, Y = 10.31, X = 9.82 / 24.82 / 39.82. İç yüzde 5.00 yüksek ışık bölmesi. Vida deliği ⌀2.00 × 4, kenarlardan 3.00 |
+| Numpad plakası `ust-plaka-numpad.stl` | Klavye plakasıyla aynı dış ölçü ve vida delikleri. 16 delik (4 × 4), ilk tuş `15.35, 26.79`. LED ⌀3.20 × 2: `14.00, 9.00` ve `29.00, 9.00` |
+| Enkoder düğmesi `enkoder-dugmesi.stl` | **⌀20.00 × 7.50**, mil deliği ⌀6.19 yuvarlak, 5.30 derin |
 
-#### Parça 2 — Üst plaka (tek parça baskı)
+### A.2 Elektronik — bağlantılar (klavye)
 
-| Öğe | Ölçü (mm) |
-|---|---|
-| Kütük | **88.20 × 99.15 × 1.50** |
-| Anahtar deliği ×11 | **14.00 × 14.00** kare (FDM'de **14.15** çiz) |
-| Enkoder deliği | **⌀7.20** merkez `72.68, 45.53` + iki pim deliği **⌀1.50** merkezleri `67.68, 45.53` ve `77.68, 45.53` (üst-sol köşeden) |
-| LED penceresi ×3 | **⌀3.00**; arka kenardan **10.00**, aralık **8.00**, orta pencere plaka ortasında |
-| Kanca çentiği ×8 | Kenardan içeri **1.2**, genişlik **9.0** — konumlar gövdedeki kancalarla aynı |
-| Alt kenar pahı | Çepeçevre **1.0 × 45°** (kancaya giriş kolaylığı) |
-| Delik merkezleri | İlk tuş **15.53, 45.53** · adım **19.05** — tam tablo §3.1'de |
-
-#### Parça 3 — Enkoder düğmesi (istersen hazır al: 6 mm D-mil düğmesi)
-
-| Öğe | Ölçü (mm) |
-|---|---|
-| Kütük | **⌀17 × 16** silindir |
-| Mil yuvası | Alt yüzden **⌀6.15**, D-düz kısımlı, **12.0 derin** |
-| Somun havşası | Alt yüzden **⌀13.0 × 3.2** (M7 somunun üstüne oturmasın diye) |
-
-#### Parça 4 — Delikli kart (kesim)
-
-| Öğe | Ölçü (mm) |
-|---|---|
-| Kesim | 7×9 **cm** karttan **80 × 45 mm** kesilir |
-| Köşe delikleri | Postlara denk **⌀3.2**, köşelerden ~4 içeride |
-| ESP32 header sıraları | Kartın **arka-sağ şeridinde**, sıralar arası **9 delik = 22.86 mm** |
-| Kartın kutudaki yeri | Arka iç duvara dayalı, **sağa yaslanmış** (sağ iç duvara ~0.5); DevKit'in USB soket burnu sağ iç duvara **dayalı**, "USB" portu delik ortasında (arkadan 21) |
-
-### A.2 Elektronik — bağlantılar
-
-Anahtar bacakları yönsüzdür: biri GPIO'ya, diğeri GND zincirine — hangisi
-olduğu fark etmez. EC11'in 3'lü tarafı **A–C–B** (C ortada), 2'li tarafı SW.
-WS2812B pad'leri: 5V · GND · DIN · DOUT (zincir yönü DOUT → sonraki DIN).
+Anahtar bacakları yönsüzdür: biri GPIO'ya, diğeri GND zincirine; hangisi olduğu fark
+etmez. EC11'in 3'lü tarafı **A–C–B** (C ortada), 2'li tarafı SW.
 
 | Nereden | Nereye |
 |---|---|
-| K1 bacak | **GPIO4** |
-| K2 bacak | **GPIO5** |
-| K3 bacak | **GPIO6** |
-| K4 bacak | **GPIO7** |
-| K5 bacak | **GPIO15** |
-| K6 bacak | **GPIO16** |
-| K7 bacak | **GPIO17** |
-| K8 bacak | **GPIO18** |
-| K9 bacak | **GPIO8** |
-| K10 bacak | **GPIO9** |
-| K11 bacak | **GPIO10** |
-| Her anahtarın 2. bacağı | **GND zinciri** (tek ortak tel) → kart GND |
-| ENC A | Kart **RC-A düğümü** → **GPIO11** |
-| ENC B | Kart **RC-B düğümü** → **GPIO12** |
+| Tuş 1 / Tuş 2 / Tuş 3 / Tuş 4 (ön sıra) | **GPIO4 / GPIO5 / GPIO6 / GPIO7** |
+| Tuş 5 / Tuş 6 / Tuş 7 / Tuş 8 (orta sıra) | **GPIO15 / GPIO16 / GPIO17 / GPIO18** |
+| Tuş 9 / Tuş 10 / COMBO / OS (arka sıra) | **GPIO10 / GPIO9 / GPIO8 / GPIO21** |
+| Her anahtarın 2. bacağı | **GND zinciri** (tek ortak tel) → DevKit GND |
+| ENC A | **RC-A düğümü** → **GPIO11** |
+| ENC B | **RC-B düğümü** → **GPIO12** |
 | ENC C (orta) | GND zinciri |
 | ENC SW 1. pin | **GPIO13** |
 | ENC SW 2. pin | GND zinciri |
-| **GPIO14** | → 330 Ω → **LED1 DIN** |
-| DevKit **5V** | → 1N4148 → **LED1·2·3 5V** hattı |
-| DevKit **GND** | **LED1·2·3 GND** hattı |
-| LED1 **DOUT** | LED2 **DIN** |
-| LED2 **DOUT** | LED3 **DIN** |
-| DevKit'in **"USB" serigrafili portu** (native) | Sağ duvardaki açıklıktan dışarı — "UART" yazan porta TAKMA, klavye çalışmaz. Fiş tipi karta göre USB-C (klon) veya Micro-B (resmî Espressif) |
+| **GPIO14** | → 330 Ω → **LED1** anot (Windows, soldaki pencere) |
+| **GPIO42** | → 330 Ω → **LED2** anot (macOS, ortadaki pencere) |
+| **GPIO41** | → 330 Ω → **LED3** anot (COMBO, sağdaki pencere) |
+| LED1·2·3 katot | GND zinciri |
+| DevKit **3V3** | 10 kΩ'ların üst ucu (RC filtresi) |
+| DevKit'in **"USB" serigrafili soketi** (native) | Sağ duvardaki açıklıktan dışarı. "UART" yazan sokete TAKMA, klavye çalışmaz. Fiş tipi karta göre USB-C (klon) veya Micro-B (resmî Espressif) |
 
-### A.3 Elektronik — parçalar (kart üstünde lehimli)
+Numpad bağlantıları: §5.1 ve [PIN-HARITASI.md](../PIN-HARITASI.md) bölüm 2.
+
+### A.3 Elektronik — küçük parçalar
 
 | Parça | Değer / tip | Bağlantısı |
 |---|---|---|
-| Dişi header ×2 sıra | 1×22 pin | ESP32 buraya takılır (sökülebilir) |
-| Diyot | **1N4148** | DevKit 5V → LED 5V hattı; **çizgili uç LED tarafında** |
-| Kondansatör | **1000 µF / ≥10 V** | LED 5V hattı ↔ GND; **uzun bacak 5V'ta** |
-| Direnç | **330 Ω** | GPIO14 ile LED1 DIN arasında |
 | Direnç ×2 | **10 kΩ** | 3V3 → RC-A ve RC-B düğümleri |
 | Kondansatör ×2 | **100 nF** | RC-A ve RC-B düğümleri → GND |
 | RC düğümü (×2) | — | Düğümde üç uç birleşir: 10 kΩ alt ucu + ENC teli + GPIO (11 veya 12) |
+| Direnç ×3 | **330 Ω** | GPIO14 / 42 / 41 ile LED anotları arasında, LED bacağına lehimli + makaron |
 
 > DevKit üzerindeki pin adları karta basılıdır; GPIO numarasını **yazısından**
 > doğrula, konumundan sayma.

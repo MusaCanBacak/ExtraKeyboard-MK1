@@ -1,44 +1,32 @@
-# Bu klasör artık ikincil (opsiyonel referans)
+# mechanical/ — baskı dosyaları
 
-Mekanik çizim **kendin yapılacak**. Ölçüleri buradan değil şuradan al:
+## Güncel baskı dosyaları → [`stl/`](stl/)
 
-### → [docs/BASIT-YAPIM.md](../docs/BASIT-YAPIM.md) §3
+| Dosya | Parça |
+|---|---|
+| [`stl/govde.stl`](stl/govde.stl) | Eğimli gövde, dış 94.20 × 105.15 mm, ön 19 → arka 33 mm. Klavye ve numpad için aynı |
+| [`stl/ust-plaka-klavye.stl`](stl/ust-plaka-klavye.stl) | Klavye üst plakası, 87.85 × 99.77 × 3.00 mm: 12 tuş + enkoder + 3 LED |
+| [`stl/ust-plaka-numpad.stl`](stl/ust-plaka-numpad.stl) | Numpad üst plakası, aynı dış ölçü: 16 tuş + 2 LED |
+| [`stl/enkoder-dugmesi.stl`](stl/enkoder-dugmesi.stl) | Enkoder düğmesi, ⌀20 × 7.5 mm |
 
-Orada üst plaka delik koordinatları, dikey katman yığını, gövde ölçüleri ve
-3D baskı telafileri hazır tablolar hâlinde.
+Ölçüler, delik koordinatları, baskı yönü ve montaj sırası:
+**[docs/BASIT-YAPIM.md](../docs/BASIT-YAPIM.md) §3 ve §6.**
+Tuş başlığı dosyası yoktur; MX uyumlu herhangi bir tuş başlığı olur.
 
 ---
 
-## Buradaki dosyalarla ilgili bilinen fark
+## Bu klasördeki `.scad` dosyaları ve `plate.dxf` — ilk tasarım
 
-Bu klasördeki `.scad` dosyaları ve `plate.dxf`, projenin **ilk (katmansız)**
-tasarımına göre üretildi:
+Bu dosyalar projenin **ilk** tasarımına aittir ve güncel baskı dosyalarıyla
+uyumlu **değildir**. Yalnızca referans olarak bırakıldı.
 
-| | `.scad` dosyaları | Güncel tasarım (BASIT-YAPIM.md) |
+| | `.scad` / `plate.dxf` | Güncel (`stl/`) |
 |---|---|---|
-| Gövde şekli | **düz kutu** | **önden arkaya yükselen kama, 8.04°** |
-| Dış ölçü | 88.20 × 69.15 mm | **88.20 × 99.15 mm** |
-| Arkada bölme | yok | **30.00 mm elektronik bölmesi** |
-| Ön yükseklik | 22.00 mm | **15.00 mm** |
-| Arka yükseklik | 22.00 mm | **29.00 mm** |
-| İç boşluk | 18.00 mm (sabit) | **11.42 → 24.58 mm** |
-| Vida | 4 adet | **6 adet** |
+| Tuş | 11 (3 × 3 + sağ sütunda enkoder / COMBO / OS) | **12** (4 × 3), numpad **16** |
+| Gövde | düz kutu, 88.20 × 69.15 mm, 22 mm yükseklik | **kama**, dış 94.20 × 105.15 mm, ön 19 → arka 33 mm, 8° |
+| Plaka | 1.50 mm | **3.00 mm**, 87.85 × 99.77 mm |
+| Enkoder | tuş ızgarasında | **arka şeritte**, LED'lerin yanında |
+| LED | 3 × WS2812B | **3 düz LED** (⌀3.2 pencere) + ışık bölmesi |
+| Plaka tutturma | — | **4 köşe vidası** (M2), gövdedeki takozlara |
 
-**İki sebep:**
-
-1. **Yapı katmanlı hâle geldi** — delikli kart ve ESP32 artık anahtarların
-   altında. Anahtar plakanın altında 9 mm, DevKit yığını 11.94 mm yer istiyor;
-   ikisi tuş alanının altına sığmadığı için **arkaya 30 mm'lik anahtarsız bir
-   bölme** eklendi. Plaka bu yüzden 69.15 → 99.15 mm derinleşti.
-2. **Gövde ergonomi için eğimli yapıldı** (8.04°, klavye standardı 6–9°).
-
-**Tuş yerleşimi değişmedi** (19.05 mm adım, 14.00 mm delikler) ama tuş satırları
-plaka üzerinde 30 mm geriye kaydı, plaka dış ölçüsü de büyüdü.
-⚠️ Bu yüzden **`plate.dxf` artık geçerli DEĞİLDİR** — güncel delik koordinatları
-`docs/BASIT-YAPIM.md` §3.1'deki tablodadır.
-
-> `case.scad` düz kutu üretir; kama gövde + bölme için yeniden yazılması gerekir.
-> Kendi çizimini yapacağın için buna girmeye değmez — BASIT-YAPIM.md §3.2'deki
-> iki yükseklik (15 / 29 mm) ile yandan yamuk çizmen yeterli.
-> `docs/02-MEKANIK-TASARIM.md` içindeki Z-kotu tabloları da eski düz kutuya göredir.
-> Karışıklığı önlemek için ya tamamen BASIT-YAPIM.md'yi izle, ya tamamen docs/02'yi.
+`docs/02-MEKANIK-TASARIM.md` de bu ilk tasarıma göredir.

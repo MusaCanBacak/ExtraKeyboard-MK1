@@ -1,5 +1,11 @@
 # ExtraKeyboard MK1 — Çekirdek Spesifikasyon (v3.0.0)
 
+> ⚠️ **Güncel donanım farklıdır.** Bu şartnamenin donanım bölümleri (tuş sayısı ve
+> pinleri, LED devresi, mekanik ölçüler) projenin ilk tasarımına aittir: 11 tuş,
+> 3 × WS2812B LED, düz kutu gövde. Güncel donanım için
+> [`PIN-HARITASI.md`](../PIN-HARITASI.md) ve [`BASIT-YAPIM.md`](BASIT-YAPIM.md)
+> geçerlidir.
+
 > **BU DOSYA TEK DOĞRULUK KAYNAĞIDIR (Single Source of Truth).**
 > Firmware, PC uygulaması, mekanik ve tüm dokümantasyon bu dosyadaki
 > pin numaralarına, protokol mesajlarına, isimlendirmeye ve JSON şemasına

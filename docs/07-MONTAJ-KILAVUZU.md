@@ -1,10 +1,12 @@
 # ExtraKeyboard MK1 — Montaj Kılavuzu (v3.0.0)
 
-> ⚠️ **GÜNCELLEME — bağlantı sistemi değişti.** Gövde artık vidalı değil
-> **geçmeli (snap-fit)**: M3 vida ve heat-set insert KULLANILMAZ, bu dosyadaki
-> Adım 3 (insert yerleştirme) ve vidalama adımları ATLANIR. Güncel bağlantı
-> tarifi ve montaj sırası: [BASIT-YAPIM.md](BASIT-YAPIM.md) §3.2 ve §6.
-> Bu dosyanın lehimleme/test bölümleri geçerliliğini korur.
+> ⚠️ **Güncel donanım farklıdır.** Bu kılavuz projenin ilk tasarımını anlatır
+> (11 tuş, 3 × WS2812B LED, delikli kart, M3 vida + heat-set insert). Güncel yapı:
+> 12 tuş, 3 düz LED, hazır baskı dosyaları (`mechanical/stl/`); plaka 4 köşeden M2
+> vidayla gövdedeki takozlara tutturulur, heat-set insert kullanılmaz. Güncel montaj
+> sırası, kablolama ve ölçüler: [BASIT-YAPIM.md](BASIT-YAPIM.md) §3, §5 ve §6.
+> Bu dosyadaki genel lehimleme teknikleri yine geçerlidir; pin ve parça listesi için
+> [`PIN-HARITASI.md`](../PIN-HARITASI.md) ve BASIT-YAPIM.md'yi kullanın.
 
 
 > Bu kılavuz, cihazın sıfırdan monte edilmesini adım adım anlatır.

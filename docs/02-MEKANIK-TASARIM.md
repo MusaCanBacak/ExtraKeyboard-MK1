@@ -1,5 +1,11 @@
 # ExtraKeyboard MK1 — Mekanik Tasarım (v3.0.0)
 
+> ⚠️ **Güncel donanım farklıdır.** Bu belge projenin ilk tasarımını anlatır
+> (11 tuş, 3 × WS2812B LED, 1N4148 diyot, 1000 µF kondansatör, delikli kart).
+> Güncel yapı: 12 tuş, 3 düz LED (her biri 330 Ω ile kendi GPIO'sunda), gövde ve
+> plaka için hazır baskı dosyaları (`mechanical/stl/`). Çelişkide
+> [`PIN-HARITASI.md`](../PIN-HARITASI.md) ve [`BASIT-YAPIM.md`](BASIT-YAPIM.md) geçerlidir.
+
 > **Ölçü kaynağı:** [`docs/00-CEKIRDEK-SPEC.md`](00-CEKIRDEK-SPEC.md) Bölüm 2 ve 2.1.
 > Bu doküman o dosyadaki ölçüleri **birebir** uygular. Çelişki görürsen çekirdek spec kazanır.
 > Parametrik kaynak: [`mechanical/parameters.scad`](../mechanical/parameters.scad) — **tüm ölçülerin tek adresi**.
