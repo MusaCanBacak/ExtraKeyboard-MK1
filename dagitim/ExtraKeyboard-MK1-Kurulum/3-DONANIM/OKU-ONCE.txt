@@ -1,0 +1,15 @@
+=====================================================================
+  3-DONANIM  -  HANGI BELGE GUNCEL?
+=====================================================================
+
+  Guncel donanim: 12 tus (10 islev + COMBO + OS), EC11 enkoder ve
+  3 DUZ (tek renk) LED. Her LED kendi GPIO'suna 330 ohm direncle
+  baglanir.
+
+  PIN-HARITASI.md bu donanimi anlatir ve karttan dogrulanmistir.
+
+  Diger belgelerin bazi bolumleri projenin ilk tasarimindan kalmadir
+  (11 tus, WS2812B adreslenebilir LED, 1N4148 diyot, 1000 uF
+  kondansator, DIN/DOUT zinciri). Bu devre artik KULLANILMAZ.
+  Celiskide PIN-HARITASI.md ve depodaki README gecerlidir:
+     https://github.com/MusaCanBacak/ExtraKeyboard-MK1

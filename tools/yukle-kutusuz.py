@@ -136,6 +136,26 @@ def bekle(kosul, sure, adim=0.5):
     return None
 
 
+def rom_kararli_bekle(sure=8.0, kararlilik=1.0):
+    """ROM portunun en az `kararlilik` sn kesintisiz gorunmesini bekler.
+    Doner: (ROM portu ya da None, kart firmware'e geri mi acildi)."""
+    t0, gorulen, ilk, fw_gitti = time.time(), None, 0.0, False
+    while time.time() - t0 < sure:
+        rom, fw = (indirme() or [None])[0], (firmware() or [None])[0]
+        fw_gitti = fw_gitti or not fw
+        if rom:
+            if rom != gorulen:
+                gorulen, ilk = rom, time.time()
+            elif time.time() - ilk >= kararlilik:
+                return rom, False
+        else:
+            gorulen = None
+            if fw and fw_gitti:
+                return None, True
+        time.sleep(0.2)
+    return None, False
+
+
 def indirme_moduna_al():
     """CMD BOOTLOADER CONFIRM; olmazsa DTR/RTS dizisi (eski firmware)."""
     if indirme():
@@ -148,28 +168,37 @@ def indirme_moduna_al():
     port = fw[0]
     print(f"  firmware portu: {port}")
 
-    # Yol 1 — kasitli komut (yeni firmware)
-    try:
-        s = serial.Serial()
-        s.port, s.baudrate, s.timeout = port, 115200, 0.3
-        s.dtr, s.rts = True, False
-        s.open()
-        s.reset_input_buffer()
-        s.write(b"CMD BOOTLOADER CONFIRM\n")
-        s.flush()
-        t0 = time.time()
-        while time.time() - t0 < 2.0:
-            satir = s.readline().decode(errors="replace").strip()
-            if satir.startswith("ACK") and "BOOTLOADER" in satir:
+    # Yol 1 — kasitli komut (yeni firmware). 2026-10-22 oncesi firmware'de,
+    # onceki esptool oturumunun hemen ardindan kart indirme modu yerine bir
+    # kez firmware'e geri acilabiliyor (ROM portu ~0,2 sn gorunup kayboluyor;
+    # 0,5 sn'lik tarama bunu kaciriyordu): o zaman komut tekrarlanir.
+    for _ in range(3):
+        ack = False
+        try:
+            s = serial.Serial()
+            s.port, s.baudrate, s.timeout = port, 115200, 0.3
+            s.dtr, s.rts = True, False
+            s.open()
+            s.reset_input_buffer()
+            s.write(b"CMD BOOTLOADER CONFIRM\n")
+            s.flush()
+            t0 = time.time()
+            while time.time() - t0 < 2.0 and not ack:
+                satir = s.readline().decode(errors="replace").strip()
+                ack = satir.startswith("ACK") and "BOOTLOADER" in satir
+            if ack:
                 print("  komut kabul edildi:", satir)
-                break
-        s.close()
-    except Exception as e:
-        print("  komut denemesi basarisiz:", e)
-
-    p = bekle(lambda: (indirme() or [None])[0], 8)
-    if p:
-        return p
+            s.close()
+        except Exception as e:
+            print("  komut denemesi basarisiz:", e)
+        p, geri_acildi = rom_kararli_bekle()
+        if p:
+            return p
+        if not (ack and geri_acildi):
+            break
+        print("  kart firmware'e geri acildi; komut tekrarlaniyor...")
+        port = bekle(lambda: (firmware() or [None])[0], 10, adim=0.2) or port
+        time.sleep(1.5)
 
     # Yol 2 — DTR/RTS dizisi (enableReboot hala aciksa, yani eski firmware)
     print("  DTR/RTS dizisine geciliyor (eski firmware)...")
@@ -187,7 +216,7 @@ def indirme_moduna_al():
     except Exception as e:
         print("  dizi hatasi:", e)
 
-    return bekle(lambda: (indirme() or [None])[0], 10)
+    return rom_kararli_bekle(sure=10)[0]
 
 
 # FORCE_DOWNLOAD_BOOT bayragi: RTC_CNTL_OPTION1_REG bit0
@@ -204,10 +233,14 @@ def duzgun_reset(port):
     flash sonrasi DA set kalir; temizlenmezse kart her resette yine indirme
     moduna acilir ve "yukleme bozuldu" gibi gorunur (olcum: bayrak = 0x1).
     write_mem ile bit0 sifirlanip ayni cagrida hard_reset atiliyor.
+
+    --before usb_reset sart: no_reset ile baglanip hard_reset atinca kart
+    indirme modunda kaldi; USB-JTAG reset dizisinden sonraki hard_reset ise
+    karti her denemede ~1 sn'de firmware'e acti (olculdu 2026-10-22).
     """
     subprocess.run(
         [PY, ESPTOOL, "--chip", "esp32s3", "--port", port,
-         "--before", "no_reset", "--after", "hard_reset", "--no-stub",
+         "--before", "usb_reset", "--after", "hard_reset", "--no-stub",
          "write_mem", OPTION1_REG, "0x0", "0x1"],
         capture_output=True, text=True)
 
@@ -306,7 +339,7 @@ def main():
     print("\n4) Indirme-boot bayragi temizlenip reset atiliyor...")
     duzgun_reset(port)
     if not bekle(lambda: (firmware() or [None])[0], 10):
-        # Nadiren no_reset baglantisi tutmaz; usb_reset ile bir kez daha dene.
+        # Nadiren ilk deneme tutmaz; usb_reset ile bir kez daha dene.
         print("   firmware'e donmedi, usb_reset ile tekrar deneniyor...")
         subprocess.run([PY, ESPTOOL, "--chip", "esp32s3", "--port", port,
                         "--before", "usb_reset", "--after", "hard_reset", "--no-stub",

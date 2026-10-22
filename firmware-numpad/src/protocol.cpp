@@ -10,6 +10,7 @@
 #include "USBCDC.h"
 // usb_persist_restart() / RESTART_BOOTLOADER — "CMD BOOTLOADER CONFIRM" için.
 #include "esp32-hal-tinyusb.h"
+#include "soc/rtc_cntl_reg.h"  // RTC_CNTL_OPTION1_REG: FORCE_DOWNLOAD_BOOT
 #include "esp_system.h"        // esp_restart(): TX tikanma kurtarmasi
 #endif
 
@@ -273,10 +274,25 @@ void handleBootloaderCommand(char *arg) {
     EK_SERIAL.flush();
     delay(200);
 
-    // RESTART_BOOTLOADER: USB'yi ROM'un USB-Serial-JTAG'ine çevirir,
-    // FORCE_DOWNLOAD_BOOT bayrağını yazar ve yeniden başlatır. Sonuç, BOOT
-    // tuşunu basılı tutup RST'ye basmakla aynıdır.
+    // FORCE_DOWNLOAD_BOOT bayrağı USB geçişinden ÖNCE kurulur. Çekirdek onu
+    // ancak esp_restart() sırasında yazıyor; oysa usb_persist_restart() önce
+    // USB'yi ROM'un USB-Serial-JTAG'ine çevirip host'un veri yolu resetini
+    // ~1 sn bekliyor. Ölçüldü (2026-10-22): önceki esptool oturumu kartı
+    // USB-JTAG hattından resetlediyse JTAG tarafı bu bekleme sırasında kartı
+    // bir kez resetliyor; bayrak henüz yokken kart indirme modu yerine yine
+    // firmware'e açılıyordu (ROM portu ~0,2 sn görünüp kayboluyor). Bayrak
+    // önceden kuruluysa o reset de indirme moduna düşer.
+    REG_WRITE(RTC_CNTL_OPTION1_REG, RTC_CNTL_FORCE_DOWNLOAD_BOOT);
+
+    // RESTART_BOOTLOADER: USB'yi ROM'un USB-Serial-JTAG'ine çevirir ve
+    // yeniden başlatır. Sonuç, BOOT tuşunu basılı tutup RST'ye basmakla aynıdır.
     usb_persist_restart(RESTART_BOOTLOADER);
+
+    // Buraya yalnızca yeniden başlatma OLMADIYSA gelinir (kapanış işleyicisi
+    // kaydedilemedi). Bayrak geri alınmazsa sonraki ilk reset kartı
+    // beklenmedik biçimde indirme moduna atar.
+    REG_WRITE(RTC_CNTL_OPTION1_REG, 0);
+    Protocol::sendErr(EK_ERR_BUSY);
 #else
     (void)arg;
     Protocol::sendErr(EK_ERR_UNKNOWN_CMD);

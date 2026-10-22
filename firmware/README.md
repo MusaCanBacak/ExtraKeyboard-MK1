@@ -1,186 +1,112 @@
-# ExtraKeyboard MK1 — Firmware
+# ExtraKeyboard MK1 — Firmware (klavye)
 
-ESP32-S3 (ESP32-S3-DevKitC-1, WROOM-1 **N16R8**) için PlatformIO + Arduino
-framework ile yazılmış cihaz yazılımı.
+ESP32-S3-DevKitC-1 (ESP32-S3-WROOM-1) için PlatformIO + Arduino çekirdeği
+(arduino-esp32 2.0.17) ile yazılmış cihaz yazılımı. Numpad varyantı:
+[`../firmware-numpad/`](../firmware-numpad/).
 
-Tüm pinler, protokol mesajları, renkler ve süreler
-[`../docs/00-CEKIRDEK-SPEC.md`](../docs/00-CEKIRDEK-SPEC.md) dosyasından alınmıştır.
-Bir çelişki görürsen o dosya kazanır.
-
----
-
-## 1. Gereksinimler
-
-| Araç | Sürüm |
+| Konu | Kaynak |
 |---|---|
-| PlatformIO Core (CLI) | 6.1 veya üzeri |
-| `espressif32` platformu | `^6.5.0` (ilk derlemede otomatik iner) |
-| Adafruit NeoPixel | `^1.12.0` (otomatik iner) |
-
-PlatformIO kurulu değilse:
-
-```bash
-python3 -m pip install --user platformio
-```
-
-VS Code kullanıyorsan "PlatformIO IDE" eklentisi de yeterlidir.
+| Kablolama ve pinler (birim farkları dahil) | [`../PIN-HARITASI.md`](../PIN-HARITASI.md) |
+| Yapım ve yükleme | [`../README.md`](../README.md#4-firmware) |
+| Protokol (`EV …` / `CMD …`) | [`../docs/03-PROTOKOL.md`](../docs/03-PROTOKOL.md) |
+| Sabitler: pinler, süreler, USB kimliği | [`src/config.h`](src/config.h) |
 
 ---
 
-## 2. Derleme
+## 1. Hazır imaj
+
+Derlemeden yüklemek için
+[Sürümler](https://github.com/MusaCanBacak/ExtraKeyboard-MK1/releases/latest)
+sayfasındaki `ExtraKeyboard-Firmware.zip`'i kullanın. Yükleyici kartı kutusunu
+açmadan günceller ve modülü kendisi tanır.
+
+## 2. Ortamlar
+
+Kartlar aynı görünse de bellek tipleri farklıdır ve **yanlış ortam kartı boot
+döngüsüne sokar** (kart hiç açılmaz).
+
+| Ortam | Modül | Bellek ayarı | Üst sıra tuşları |
+|---|---|---|---|
+| `n16r8` | WROOM-1 N16R8 — 16 MB flash + 8 MB Octal PSRAM | `qio_opi`, `default_16MB.csv` | orijinal |
+| `quad` | WROOM-1 N8R2 — 8 MB flash + 2 MB Quad PSRAM | `qio_qspi`, `default_8MB.csv` | orijinal |
+| `e74610` | N16R8 — yalnızca E74610 birimi | `qio_opi` | takaslı (`EK_KEYMAP_SWAPPED`) |
+
+Modülü öğrenmek için kart indirme modundayken `esptool --chip esp32s3 flash-id`
+çalıştırın: `Embedded PSRAM 8MB` → N16R8, `Embedded PSRAM 2MB` → N8R2.
+
+## 3. Derleme
 
 ```bash
 cd firmware
-pio run
+pio run -e n16r8          # ya da: pio run -e quad
 ```
 
-İlk derleme araç zincirini indirdiği için birkaç dakika sürebilir.
+Dört genel imajı (klavye + numpad, N16R8 + N8R2) derleyip birleştirmek ve
+doğrulamak için kök dizinde `python3 tools/imaj-olustur.py` kullanın.
 
----
+## 4. Yükleme
 
-## 3. Yükleme
+> **⚠️ `pio run -t upload` kullanmayın.** PlatformIO imajı QIO / 80 MHz başlığıyla
+> yazar; bu kartlardaki Boya flash çipleri o ayarla okunamaz ve kart açılmaz (seri
+> çıktıda `ets_loader.c 78`). Derleme `qio` / 80 MHz kalır, çünkü hazır bootloader
+> ELF'leri yalnızca öyle gelir. Başlık **yazarken** DIO / 40 MHz yapılır.
 
-Kartı USB-C ile bağla. macOS'ta port genellikle `/dev/cu.usbmodem*`,
-Linux'ta `/dev/ttyACM*`, Windows'ta `COMx` olur.
+Önerilen yol, kendi birleştirdiğiniz imajı yükleyiciyle yazmaktır. Yükleyici kartı
+kutuyu açmadan indirme moduna alır, cihaz ayarlarını korur ve sonucu doğrular:
 
 ```bash
-pio run --target upload
+python3 dagitim/ExtraKeyboard-Firmware/yukle.py --imaj <birlesik-imaj.bin>
 ```
 
-Port otomatik bulunamazsa elle ver:
+Parça parça elle yazmak için kart indirme modundayken (esptool 4.x sözdizimi):
 
 ```bash
-pio run --target upload --upload-port /dev/cu.usbmodem101
+esptool.py --chip esp32s3 --port <PORT> write_flash \
+  --flash_mode dio --flash_freq 40m --flash_size 16MB \
+  0x0     .pio/build/n16r8/bootloader.bin \
+  0x8000  .pio/build/n16r8/partitions.bin \
+  0xe000  ~/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin \
+  0x10000 .pio/build/n16r8/firmware.bin
 ```
 
-**Kart yükleme moduna girmiyorsa:** `BOOT` düğmesini basılı tut, `RESET`'e
-bir kez bas, `BOOT`'u bırak ve komutu tekrar çalıştır.
+`quad` için `--flash_size 8MB` ve `.pio/build/quad/` kullanın. Kart
+`CMD BOOTLOADER CONFIRM` ile indirme moduna alındıysa, yazmadan sonra
+`FORCE_DOWNLOAD_BOOT` bayrağı kurulu kalır. Kart yeniden indirme moduna açılırsa
+USB kablosunu çıkarıp takın; yükleyici bu bayrağı kendisi temizler.
 
-İlk yüklemeden sonra cihaz kendi USB kimliğiyle
-(`VID 0x303A` / `PID 0x82E1` / `ExtraKeyboard MK1`) yeniden numaralandırılır;
-bu yüzden port adı değişebilir.
-
----
-
-## 4. Seri izleme (hata ayıklama)
+## 5. Seri izleme
 
 ```bash
-pio device monitor
+pio device monitor -e n16r8
 ```
 
-Cihaz saniyede bir `HB <uptime_ms>` yollar. Elle komut denemek için:
+Cihaz saniyede bir `HB <uptime_ms>` gönderir. Elle denenebilecek komutlar:
+`CMD ID`, `CMD PING`, `CMD OS MAC`, `CMD LED BRIGHT 90`, `CMD ENC MODE HOST`,
+`CMD HIDFB OFF`, `CMD SAVE`. Tam liste için protokol belgesine bakın.
 
-```
-CMD ID
-CMD PING
-CMD OS MAC
-CMD LED 1 1E90FF
-CMD LED BRIGHT 90
-CMD LED 1 AUTO
-CMD ENC MODE HOST
-CMD HIDFB OFF
-CMD SAVE
-```
+> Cihaz kendini "uygulama bağlı" saymak için hem CDC DTR hattının yüksek olmasını
+> hem de son 3 saniyede PC'den bir satır almış olmayı ister. Aksi hâlde HID yedek
+> moduna düşer ve tuşlar `F13`–`F22` gönderir.
 
-> **Not:** Cihaz "uygulama bağlı" sayılmak için hem CDC DTR sinyalinin yüksek
-> olmasını hem de **son 3 saniye içinde** PC'den bir satır almış olmayı ister.
-> PC uygulaması bu yüzden en az 3 saniyede bir `CMD PING` göndermelidir.
-> Aksi hâlde cihaz HID yedek moduna düşer (LED3 kırmızı olur).
-
----
-
-## 5. En kritik ayar
-
-`platformio.ini` içindeki şu iki bayrak **asla değiştirilmemelidir**:
+## 6. Değiştirilmemesi gereken ayarlar
 
 ```ini
--D ARDUINO_USB_MODE=0
--D ARDUINO_USB_CDC_ON_BOOT=1
+-D ARDUINO_USB_MODE=0          ; TinyUSB: HID + CDC birlikte. 1 olursa HID hiç çalışmaz.
+-D ARDUINO_USB_CDC_ON_BOOT=1   ; Serial = USB CDC (uygulamanın konuştuğu port)
 ```
 
-`ARDUINO_USB_MODE=1` yapılırsa TinyUSB yığını devre dışı kalır; cihaz sadece
-seri port olarak görünür ve **USB HID (F13–F22, ses tuşları) hiç çalışmaz.**
+USB kimliği de derleme bayrağıdır (üretici `BlueDevelopment`, ürün
+`ExtraKeyboard MK1`), çünkü TinyUSB `setup()`'tan önce başlar.
 
-N16R8 modülü için bellek ayarları da zorunludur:
-
-```ini
-board_build.arduino.memory_type = qio_opi   ; Quad flash + Octal PSRAM
-board_build.partitions          = default_16MB.csv
-board_upload.flash_size         = 16MB
-```
-
-Bunlar yanlış olursa kart açılışta sürekli yeniden başlar.
-
----
-
-## 6. Kaynak dosyaları
+## 7. Kaynak dosyaları
 
 | Dosya | Görevi |
 |---|---|
-| `src/config.h` | Pinler, süreler, renkler, sürümler, USB kimliği |
-| `src/keys.h/.cpp` | 11 tuş okuma, 5 ms debounce, combo durum makinesi |
-| `src/encoder.h/.cpp` | EC11 quadrature durum tablosu çözücüsü + buton |
-| `src/leds.h/.cpp` | 3× WS2812B durum LED'i, bloklamayan flaşlar |
-| `src/protocol.h/.cpp` | CDC satır tabanlı olay gönderme / komut ayrıştırma |
-| `src/hid.h/.cpp` | USB HID klavye (F13–F22) ve ses tuşları |
+| `src/config.h` | Pinler, süreler, sürüm, USB kimliği, bekçi süreleri |
+| `src/keys.h/.cpp` | 12 tuş okuma (8 ms debounce), `KEY_PINS` sırası, combo durum makinesi |
+| `src/encoder.h/.cpp` | EC11 durum tablosu çözücüsü + buton |
+| `src/leds.h/.cpp` | 3 düz LED (Windows / macOS / COMBO), bloklamayan yanıp sönmeler |
+| `src/protocol.h/.cpp` | CDC satır protokolü, `CMD BOOTLOADER CONFIRM`, gönderim tıkanma bekçisi |
+| `src/hid.h/.cpp` | USB HID klavye (`F13`–`F22`) ve ses tuşları |
 | `src/storage.h/.cpp` | NVS: OS modu, HID yedek, enkoder modu, LED ayarları |
-| `src/main.cpp` | USB kurulumu, olay döngüsü, bağlantı takibi |
-
----
-
-## 7. Pin özeti (spec bölüm 3.1)
-
-| İşlev | GPIO | | İşlev | GPIO |
-|---|---|---|---|---|
-| K1 | 4 | | K8 | 18 |
-| K2 | 5 | | K9 | 8 |
-| K3 | 6 | | K10 (COMBO) | 9 |
-| K4 | 7 | | K11 (OS) | 10 |
-| K5 | 15 | | ENC_A | 11 |
-| K6 | 16 | | ENC_B | 12 |
-| K7 | 17 | | ENC_SW | 13 |
-| | | | LED_DATA | 14 |
-
-Tüm anahtarlar aktif-LOW, `INPUT_PULLUP`, matris yok, diyot yok.
-
----
-
-## 8. Cihaz üzerindeki kısayollar
-
-| Hareket | Sonuç |
-|---|---|
-| `K11` kısa basış (< 800 ms) | Windows ⇄ macOS geçişi, NVS'e kaydedilir, LED1 rengi değişir |
-| `K11` uzun basış (≥ 3 s) | HID yedek modu açılır/kapanır, LED3 üç kez beyaz yanar |
-| `K10` basılı tutma | Combo modu (LED2 turuncu); K1..K9'dan iki tanesi combo üretir |
-| Enkoder çevirme | Ses artır / azalt |
-| Enkoder kısa basış | Sessize al |
-| Enkoder uzun basış (≥ 800 ms) | `EV ENC LONG` (eylemini PC belirler) |
-
----
-
-## 9. LED anlamları (spec bölüm 6.4)
-
-| LED | Durum | Renk |
-|---|---|---|
-| LED1 | Windows | `#1E90FF` mavi |
-| LED1 | macOS | `#FFFFFF` beyaz |
-| LED2 | Combo kapalı | sönük |
-| LED2 | Combo modu açık | `#FF9500` turuncu |
-| LED2 | Combo tetiklendi (150 ms) | `#2CC985` yeşil |
-| LED3 | Uygulama bağlı | `#2CC985` yeşil |
-| LED3 | Uygulama yok / HID yedek | `#E04F5F` kırmızı |
-| LED3 | Tuş aktivitesi (80 ms) | `#3B8ED0` mavi |
-
-Varsayılan parlaklık `60/255`.
-
----
-
-## 10. Sık karşılaşılan sorunlar
-
-| Belirti | Çözüm |
-|---|---|
-| Cihaz HID göndermiyor | `ARDUINO_USB_MODE=0` olduğunu doğrula, tam temizlik yap: `pio run -t fullclean` |
-| Kart sürekli yeniden başlıyor | `memory_type = qio_opi` ve `BOARD_HAS_PSRAM` ayarlarını kontrol et |
-| LED'ler hiç yanmıyor / rastgele | +5 V hattına 1N4148 diyot, veri hattına 330 Ω, besleme uçlarına 1000 µF eklendiğini doğrula |
-| Enkoder çift sayıyor | Her iki kanalda 10 kΩ + 100 nF RC filtresinin takılı olduğunu doğrula |
-| Port görünmüyor | `BOOT` + `RESET` ile yükleme moduna al ve yeniden yükle |
+| `src/main.cpp` | USB kurulumu, döngü bekçisi, olay döngüsü, bağlantı takibi |

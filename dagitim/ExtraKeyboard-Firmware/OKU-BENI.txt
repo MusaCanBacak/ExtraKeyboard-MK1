@@ -1,0 +1,96 @@
+=====================================================================
+  ExtraKeyboard MK1  -  FIRMWARE YUKLEME / GUNCELLEME
+=====================================================================
+
+NE ZAMAN GEREKIR?
+  - Karti ilk kez kuruyorsaniz (bos kart)
+  - Yeni bir firmware surumu ciktiginda
+  Kart calisiyor ve sorun yoksa bu adimi atlayabilirsiniz.
+
+
+NASIL?
+  1. Bilgisayar uygulamasini KAPATIN (menu cubugu / sistem tepsisi
+     simgesi > Cikis). Uygulama acikken yukleme yapilamaz.
+  2. Klavyeyi USB ile takin (kartin "USB" yazan konnektoru, "UART" degil).
+  3. macOS   : Yukle-macOS.command   dosyasina cift tiklayin
+     Windows : Yukle-Windows.bat     dosyasina cift tiklayin
+     Linux   : python3 -m pip install -r gereksinimler.txt
+               python3 yukle.py
+  4. Program kartinizi bulur, KLAVYE mi NUMPAD mi oldugunu sorar,
+     modulu kendisi tanir ve dogru imaji yukler (yaklasik 15 saniye).
+
+  Ilk calistirmada esptool ve pyserial bu klasordeki .venv klasorune
+  kurulur (internet gerekir, bir kez). Python 3.8+ gerekir:
+  https://www.python.org/downloads/
+
+  macOS "hasar gordu / acilamiyor" derse (internetten inen imzasiz betik):
+  Terminal'i acin, "xattr -cr " yazin (sonunda BIR BOSLUK), bu klasoru
+  Terminal penceresine surukleyip birakin ve Enter'a basin. Tam kurulum
+  paketinde bunu macOS-ILK-ADIM-OKU.command yapar.
+
+
+KUTUYU ACMANIZ GEREKMEZ
+  Kart ExtraKeyboard firmware'i calistiriyorsa yukleyici onu yazilimla
+  indirme moduna alir. Yalnizca kart hic yanit vermiyorsa (bos ya da
+  bozuk firmware) sizden BOOT+RST istenir:
+     BOOT dugmesini basili tutun -> RST'ye bir kez basip birakin ->
+     BOOT'u birakin.
+  Yukleme yarida kesilirse kartin USB kablosunu cikarip takin ve
+  yukleyiciyi yeniden calistirin.
+
+
+AYARLARINIZ KORUNUR
+  Cihazda saklanan ayarlar (OS modu, LED parlakligi ve renkleri, enkoder
+  modu) guncellemede silinmez. Sifirlamak isterseniz:
+     python3 yukle.py --ayarlari-sil
+  Tus atamalariniz zaten bilgisayardaki uygulamada saklanir.
+
+
+DESTEKLENEN MODULLER
+  Kartlarda iki tur ESP32-S3-WROOM-1 modulu kullanilabilir; yukleyici
+  hangisi oldugunu kendisi okur:
+     N16R8 : 16 MB flash + 8 MB Octal PSRAM
+     N8R2  :  8 MB flash + 2 MB Quad PSRAM
+  Baska bir modul icin hazir imaj yoktur (yanlis bellek ayari karti
+  acilmaz hale getirir); kaynaktan kendi ortaminizi derleyin.
+
+
+DOSYALAR
+  Yukle-macOS.command / Yukle-Windows.bat  - cift tiklanan baslaticilar
+  yukle.py                                 - yukleyici (Python)
+  gereksinimler.txt                        - esptool + pyserial surumleri
+  imajlar/
+     ExtraKeyboard-klavye-n16r8.bin   klavye, N16R8
+     ExtraKeyboard-klavye-n8r2.bin    klavye, N8R2
+     ExtraKeyboard-numpad-n16r8.bin   numpad, N16R8
+     ExtraKeyboard-numpad-n8r2.bin    numpad, N8R2
+     SHA256SUMS.txt                   dosya ozetleri
+
+  Her imaj TEK dosyadir (bootloader + bolum tablosu + uygulama) ve
+  0x0 adresine yazilir.
+
+
+ILERI KULLANICI - esptool ile elle yazma
+  Imajlarin basliginda DIO / 40 MHz ayari hazirdir:
+     esptool --chip esp32s3 --port <PORT> write-flash 0x0 imajlar/<IMAJ>.bin
+  (esptool 4.x'te komut adi: write_flash)
+  DIKKAT: --flash-mode qio / --flash-freq 80m VERMEYIN. Bu kartlardaki
+  Boya flash cipleri o ayarla acilmaz (boot dongusu). Elle yazma
+  cihazdaki ayarlari da sifirlar. Kart yazmadan sonra acilmazsa USB
+  kablosunu cikarip takin.
+
+
+SORUN GIDERME
+  "Port kullanimda"         : ExtraKeyboard uygulamasini kapatin.
+  "Kart bulunamadi"         : veri kablosu mu? "USB" konnektoru mu?
+                              Hub yerine dogrudan bilgisayara takin.
+  "Bu modul icin hazir imaj yok" : desteklenmeyen modul (yukariya bakin).
+  Yukleme sonrasi tuslar karisik : yanlis tur secildi (klavye/numpad);
+                              yukleyiciyi yeniden calistirip dogrusunu secin.
+
+
+KAYNAK KOD VE LISANS
+  https://github.com/MusaCanBacak/ExtraKeyboard-MK1
+  Yazilim PolyForm Noncommercial 1.0.0 lisansiyla dagitilir: kisisel ve
+  ticari olmayan kullanim serbesttir; ticari kullanim icin izin gerekir
+  (ayrinti: LISANS klasoru).

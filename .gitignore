@@ -24,6 +24,8 @@ dist/
 # kökteki app/ ile birebir aynıdır.
 dagitim/*.zip
 dagitim/**/app/
+# Firmware imajları tools/imaj-olustur.py ile üretilir; Release eki olarak yayımlanır.
+dagitim/ExtraKeyboard-Firmware/imajlar/
 
 # macOS / IDE
 .DS_Store

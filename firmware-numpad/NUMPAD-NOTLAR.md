@@ -9,9 +9,12 @@ otomatik tanır, sürücü/uygulama gerekmez).
 > uygulamaya EV KEY bildirmek yerine doğrudan keypad HID kodu yazar.
 
 ## Donanım
-- Kart: **ESP32-S3-DevKitC-1, 8 MB flash + Quad SPI PSRAM (AP_3v3)**
-- `platformio.ini`: `memory_type = qio_qspi`, `flash_size = 8MB`,
-  `default_8MB.csv`. (N16R8/Octal PSRAM kartında bu ayar boot-loop yapar.)
+- Kart: **ESP32-S3-DevKitC-1** — modüle göre iki ortam (yanlış ortam boot-loop yapar):
+
+| Ortam | Modül | `platformio.ini` |
+|---|---|---|
+| `extrakeyboard` | N8R2 — 8 MB flash + 2 MB Quad PSRAM (ör. birim 6F0568) | `qio_qspi`, `default_8MB.csv`, 8MB |
+| `numpad_n16r8` | N16R8 — 16 MB flash + 8 MB Octal PSRAM | `qio_opi`, `default_16MB.csv`, 16MB |
 
 ## Pin dizilimi (4×4 tuş)
 Tuş numarası = `keys.cpp` içindeki `KEY_PINS[]` sırası. Tüm tuşlar aktif-LOW,
@@ -60,24 +63,25 @@ macOS'ta bu sorun yoktur. Numpad'de NumLock tuşu yoktur; gerekirse ana
 klavyeden aç. (İstenirse firmware'e NumLock kombosu/otomatiği eklenebilir.)
 
 ## Derleme ve yükleme
+**Hazır imaj (önerilen):** [Sürümler](https://github.com/MusaCanBacak/ExtraKeyboard-MK1/releases/latest)
+sayfasındaki `ExtraKeyboard-Firmware.zip` → yükleyiciyi çalıştırın → **Numpad**
+seçin. Yükleyici modülü kendisi tanır, kutuyu açmadan yazar ve ayarları korur.
+
+**Kaynaktan:**
 ```bash
 cd firmware-numpad
-~/.platformio/penv/bin/pio run              # derle
+~/.platformio/penv/bin/pio run -e extrakeyboard     # N8R2
+~/.platformio/penv/bin/pio run -e numpad_n16r8      # N16R8
 ```
-Kart **yerleşik USB (USB-Serial-JTAG)** kullanır; otomatik reset güvenilmez.
-Yükleme için karti download moduna al: **BOOT tut → RST bas-bırak → BOOT ~3 sn
-daha tut → bırak.** Sonra kısa isimli port (`/dev/cu.usbmodem101` gibi) belirir.
+Yazma **DIO / 40 MHz** ile yapılmalıdır; `pio run -t upload` QIO / 80 MHz yazar
+ve kart açılmaz (bkz. kök README → Firmware). Genel imajları üretmek için
+`python3 tools/imaj-olustur.py`, bu projedeki birimleri güncellemek için
+`python tools/yukle-kutusuz.py`.
 
-App-only yükleme (aynı karta, hızlı):
-```bash
-PY=~/.platformio/penv/bin/python
-EST=~/.platformio/packages/tool-esptoolpy/esptool.py
-$PY $EST --chip esp32s3 --port /dev/cu.usbmodem101 --baud 460800 \
-    --before no_reset --after watchdog_reset write_flash -z 0x10000 firmware-numpad.bin
-```
-Not: `--after watchdog_reset` bu kartlarda açılışı tetikler (RTS hard-reset
-etmiyor). 460800 en güvenilir baud. Fresh/boş karta ilk yüklemede tam flash
-(bootloader+partitions+boot_app0+firmware) gerekir: `pio run -t upload`.
+Kart firmware çalıştırmıyorsa (boş kart) indirme moduna elle alın:
+**BOOT tut → RST bas-bırak → BOOT'u bırak.** Not: bu kartlarda esptool'un RTS ile
+attığı reset, ancak USB-JTAG reset dizisinden (`--before usb_reset`) sonra açılışı
+tetikler; yükleyici bunu kendisi yapar.
 
 ## Doğrulama
 Açılışta CDC'den `ID 3.0.0 MK1 EK1-xxxxxx WIN|MAC` gelir; her 1 sn `HB` atar.

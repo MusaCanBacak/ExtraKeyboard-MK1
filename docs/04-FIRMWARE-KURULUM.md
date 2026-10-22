@@ -655,6 +655,12 @@ VS Code'da: alt çubuktaki **✓ (Build)** simgesi veya `Cmd/Ctrl + Alt + B`.
 
 ### 4.5 Yükleme
 
+> **⚠️ Bu projenin kartlarında `pio run -t upload` KULLANMAYIN.** PlatformIO imajı
+> QIO / 80 MHz yazar; bu kartlardaki Boya flash çipleri o ayarla açılmaz (boot
+> döngüsü). Hazır imaj + yükleyici ya da `--flash_mode dio --flash_freq 40m` ile
+> esptool kullanın: kök dizindeki **README.md → 4. Firmware**. Aşağıdaki komutlar
+> genel PlatformIO başvurusu olarak bırakılmıştır.
+
 **Port otomatik seçilsin:**
 
 ```bash

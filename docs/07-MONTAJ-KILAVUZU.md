@@ -704,6 +704,12 @@ USB'yi tak (Adım 12'den sonra), multimetre **DC gerilim** modunda:
 
 ### 12.2 PlatformIO ile firmware yükleme
 
+> **⚠️ Bu projenin kartlarında `pio run -t upload` KULLANMAYIN.** PlatformIO imajı
+> QIO / 80 MHz yazar; bu kartlardaki Boya flash çipleri o ayarla açılmaz (boot
+> döngüsü). Hazır imaj + yükleyici ya da `--flash_mode dio --flash_freq 40m` ile
+> esptool kullanın: kök dizindeki **README.md → 4. Firmware**. Aşağıdaki komutlar
+> genel PlatformIO başvurusu olarak bırakılmıştır.
+
 ```bash
 # Proje kökünde
 cd ~/ExtraKeyboard-MK1/firmware

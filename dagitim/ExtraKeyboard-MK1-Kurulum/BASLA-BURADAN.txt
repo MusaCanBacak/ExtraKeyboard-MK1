@@ -1,0 +1,264 @@
+=====================================================================
+  ExtraKeyboard MK1  —  KURULUM PAKETI
+  BlueDevelopment  ·  Surum 3.0.0  ·  Paket 2026-10-22
+=====================================================================
+
+Bu klasorde cihazi calistirmak icin gereken HER SEY vardir:
+bilgisayar uygulamasi, firmware ve donanim belgeleri.
+
+
+---------------------------------------------------------------------
+  !!! macOS KULLANICILARI — ONCE BUNU YAPIN !!!
+---------------------------------------------------------------------
+  macOS, internetten gelen imzasiz betikleri ACMAYI REDDEDER ve
+  "hasar gordugu icin acilamiyor" der. Dosyalar SAGLAMDIR; bu yalnizca
+  Gatekeeper karantinasidir.
+
+  COZUM (bir kez):
+     macOS-ILK-ADIM-OKU.command  dosyasina cift tiklayin.
+
+  BU ADIM ATLANIRSA IZINLER KALICI OLMAZ:
+     Karantina damgasi duran bir uygulamayi macOS ya hic acmaz, ya da
+     her acilista adi degisen GECICI bir kopyadan calistirir. Ikinci
+     durumda uygulama calisir, ama verdiginiz Erisilebilirlik izni bir
+     sonraki acilista kaybolur — "izin verdim, yine soruyor, makro ve
+     metin calismiyor" durumu tam olarak budur.
+
+  O DA ACILMIYORSA (Terminal ile, en garantili yol):
+     1. Terminal'i acin (Uygulamalar > Izlenceler > Terminal)
+     2. Su komutu yazin, sonunda BIR BOSLUK birakin:
+
+            xattr -cr 
+
+     3. Bu klasoru Finder'dan Terminal penceresine SURUKLEYIP birakin
+        (yol kendiliginden yazilir) ve Enter'a basin.
+     4. Ardindan asagidaki adimlara devam edin.
+
+  Windows'ta bu adim GEREKMEZ.
+
+
+---------------------------------------------------------------------
+  HIZLI KURULUM  (3 adim, yaklasik 5 dakika)
+---------------------------------------------------------------------
+
+ADIM 1 — FIRMWARE YUKLE   (ilk kurulumda ya da yeni surum ciktiginda)
+---------------------------------------------------------------------
+  Bilgisayar uygulamasi aciksa kapatin. Klavyeyi USB kablosuyla takin;
+  kartta "USB" yazan konnektoru kullanin ("UART" degil).
+
+  macOS   :  2-FIRMWARE/Yukle-macOS.command   dosyasina cift tiklayin
+  Windows :  2-FIRMWARE\Yukle-Windows.bat     dosyasina cift tiklayin
+
+  Yukleyici kartinizi bulur, KLAVYE mi NUMPAD mi oldugunu sorar,
+  modulu (N16R8 / N8R2) kendisi tanir ve dogru imaji yukler. Kartta
+  calisan bir ExtraKeyboard firmware'i varsa kutuyu acmaniz gerekmez;
+  cihazdaki ayarlar korunur. Python 3.8+ gerekir; esptool ilk
+  calistirmada kurulur (internet gerekir). Ayrinti: 2-FIRMWARE/OKU-BENI.txt
+
+  Not: Karta zaten firmware yuklenmisse ve sorun yoksa bu adimi
+  atlayabilirsiniz.
+
+
+ADIM 2 — BILGISAYAR UYGULAMASINI BASLAT
+---------------------------------------------------------------------
+  macOS  (onerilen — PYTHON KURMANIZA GEREK YOK):
+
+     1-BILGISAYAR-UYGULAMASI/macOS/ExtraKeyboard.app
+
+     Cift tiklayin, hepsi bu. Uygulama kendi Python'unu ve Tcl/Tk 8.6'sini
+     icinde tasir; bilgisayara hicbir sey kurulmaz. Isterseniz
+     Uygulamalar klasorune surukleyin. Intel ve Apple Silicon Mac'lerin
+     ikisinde de calisir.
+
+     Ilk acilista "tanimlanamayan gelistirici" uyarisi cikarsa:
+     ExtraKeyboard.app'e SAG TIK > Ac > cikan pencerede yine "Ac".
+     (Ya da bir kez macOS-ILK-ADIM-OKU.command calistirin.)
+
+  Windows :  1-BILGISAYAR-UYGULAMASI\Windows\Baslat.bat
+
+     Ilk acilis internetten gerekli paketleri kurar (1-2 dakika),
+     sonraki acilislar aninda olur. Masaustune otomatik kisayol eklenir.
+     Onkosul: python.org'dan Python 3.9+; kurulumda "Add python.exe to
+     PATH" ve "tcl/tk and IDLE" kutulari isaretli olmalidir.
+
+  macOS ALTERNATIF (kaynak koddan calistirma — Python gerekir):
+
+     1-BILGISAYAR-UYGULAMASI/macOS/Baslat.command
+
+     Bu yol Python 3.9+ VE Tcl/Tk 8.6 ister. DIKKAT: macOS'un kendi
+     Python 3.9'u (/usr/bin/python3) YETERLI DEGILDIR — Tk 8.5.9 ile
+     gelir ve arayuz o surumde hic cizilmez (bombos/beyaz pencere).
+     Bu yolu secerseniz once python.org'dan Python 3.12+ kurun.
+     Ihtiyaciniz yoksa .app yolunu kullanin; daha kolaydir.
+
+
+ADIM 3 — macOS'ta IZIN VER   (yalnizca metin/kisayol/medya icin)
+---------------------------------------------------------------------
+  Uygulama acilista bir kez izin penceresi gosterir.
+  Sistem Ayarlari > Gizlilik ve Guvenlik > Erisilebilirlik listesinde
+  TERMINAL'in anahtarini acin, sonra uygulamayi masaustu kisayolundan
+  yeniden baslatin.
+
+  ONEMLI: Izin ExtraKeyboard'a degil, onu calistiran TERMINAL'e verilir.
+  Terminal listede yoksa: Finder > Uygulamalar > Izlenceler klasorunden
+  Terminal'i listenin uzerine surukleyip birakin.
+
+  Windows'ta bu adim gerekmez. Ilk acilista Guvenlik Duvari izni
+  isterse "izin ver" deyin (yalnizca telefon ozelligi icin gereklidir).
+
+
+---------------------------------------------------------------------
+  KULLANIM OZETI
+---------------------------------------------------------------------
+
+  TUSLAR      : Karta tiklayip eylem atayin. Uygulama/dosya/klasoru
+                dogrudan kartin uzerine surukleyip birakabilirsiniz.
+  COMBO       : COMBO tusuna basin (mod acilir ve ACIK KALIR), ardindan
+                iki islev tusuna basin. Kapatmak icin COMBO'ya tekrar basin.
+  OS DEGISTIR : Windows ve macOS profilleri arasinda gecis yapar.
+  ENKODER     : HID modunda ses kontrolu (uygulama kapaliyken de calisir).
+                Kendi eylemlerinizi kullanmak icin HOST moduna gecin.
+  TELEFON     : Ayni Wi-Fi agindaki telefonda basilan tuslar canli parlar.
+                GUVENLIK: sunucu VARSAYILAN KAPALIDIR. Telefon sekmesinden
+                acin; adres oturuma ozel gizli bir jeton icerir ve yalnizca
+                QR'i okutan cihaz baglanabilir. En fazla 8 telefon.
+
+  Uygulama penceresini kapatmak uygulamayi kapatmaz; arka planda calisir.
+  Geri acmak icin: Dock/gorev cubugu simgesine tiklayin, menu cubugundaki
+  EK simgesini kullanin ya da masaustu kisayoluna tekrar tiklayin.
+  Tamamen kapatmak icin menu cubugu simgesi > Cikis.
+
+  Ayarlar otomatik kaydedilir; "AYARLARI KAYDET" dugmesi beklemeden
+  yazmak icindir.
+
+
+---------------------------------------------------------------------
+  KLASOR ICERIGI
+---------------------------------------------------------------------
+
+  macOS-ILK-ADIM-OKU.command  — macOS karantinasini kaldirir (bir kez)
+
+  1-BILGISAYAR-UYGULAMASI/
+      macOS/    ve    Windows/     — uygulama (baslatici dosyalariyla)
+
+  2-FIRMWARE/
+      Yukle-macOS.command / Yukle-Windows.bat  — tek tikla yukleyici
+      yukle.py                                 — yukleyici (Python)
+      imajlar/                                 — hazir firmware imajlari
+      OKU-BENI.txt                             — ayrintili anlatim
+
+  3-DONANIM/
+      OKU-ONCE.txt              — hangi belge guncel (once bunu okuyun)
+      PIN-HARITASI.md           — GUNCEL pin haritasi (klavye + numpad)
+      kablolama-tablosu.md      — tel tel lehimleme tablosu
+      sematik.md                — devre semalari
+      01-DONANIM-PIN-SEMASI.md  — ayrintili pin belgesi
+      07-MONTAJ-KILAVUZU.md     — montaj adimlari
+      08-SORUN-GIDERME.md       — ariza bulma
+      BOM.csv                   — malzeme listesi
+
+  LISANS/
+      LISANS.md                 — lisansin Turkce aciklamasi
+      LICENSE.md                — yazilim lisansi (PolyForm Noncommercial 1.0.0)
+      LICENSE-CC-BY-NC-SA-4.0.txt — donanim ve belge lisansi
+
+  Kaynak kod: https://github.com/MusaCanBacak/ExtraKeyboard-MK1
+
+
+---------------------------------------------------------------------
+  LISANS
+---------------------------------------------------------------------
+  Telif hakki (c) 2026 BlueDevelopment.
+  Kisisel, egitim ve diger ticari olmayan kullanimlar serbesttir.
+     Yazilim (uygulama, firmware, araclar) : PolyForm Noncommercial 1.0.0
+     Donanim tasarimi ve belgeler          : CC BY-NC-SA 4.0
+  Ticari kullanim icin izin gerekir; GitHub'da konu (issue) acin:
+     https://github.com/MusaCanBacak/ExtraKeyboard-MK1/issues
+  Ayrinti: LISANS/LISANS.md
+
+
+---------------------------------------------------------------------
+  PYTHON SURUMU  (macOS'ta cok onemli)
+---------------------------------------------------------------------
+  ONCE SUNU BILIN: ExtraKeyboard.app kullaniyorsaniz bu bolum sizi
+  ILGILENDIRMEZ — paket kendi Python ve Tcl/Tk'sini icinde tasir.
+  Asagidakiler yalnizca Baslat.command ile kaynak koddan calistiranlar
+  icindir.
+
+  Uygulama Tcl/Tk 8.6 gerektirir.
+
+  macOS'un kendi Python 3.9'u (/usr/bin/python3) YETERLI DEGILDIR.
+  tkinter'i vardir, ama 2010 yapimi Tk 8.5.9 ile gelir: uygulama hatasiz
+  acilir, pencere basligi gorunur, tiklamalar bile calisir - ama arayuz
+  HIC CIZILMEZ. Pencere bombos, acik temada bembeyaz kalir.
+
+  COZUM:
+     1. https://www.python.org/downloads/macos/ adresinden Python 3.12
+        (veya ustu) kurun - Tcl/Tk 8.6 dahildir.
+     2. Uygulama klasorundeki .venv klasorunu silin.
+     3. Baslat.command dosyasina yeniden cift tiklayin.
+
+  Baslat.command bunu kendiliginden de yapar: eski Tk'li bir sanal ortam
+  bulursa siler ve Tk 8.6 iceren bir Python ile yeniden kurar. Boyle bir
+  Python yoksa acik bir hata mesaji verir.
+
+  Windows'ta: python.org kurulumunda "tcl/tk and IDLE" kutusu isaretli
+  olmalidir (varsayilan olarak isaretlidir).
+
+
+---------------------------------------------------------------------
+  PROGRAMI KALDIRMA
+---------------------------------------------------------------------
+  macOS   :  1-BILGISAYAR-UYGULAMASI/macOS/Kaldir-macOS.command
+  Windows :  1-BILGISAYAR-UYGULAMASI\Windows\Kaldir-Windows.bat
+
+  Dosyaya cift tiklayin ve sorulara yanit verin. Kaldirilanlar:
+     - calisan uygulama durdurulur
+     - sanal ortam (.venv) ve kurulan Python paketleri
+     - masaustu kisayolu (Windows'ta baslangic girdisi de)
+     - gunluk dosyasi ve on bellek klasorleri
+
+  AYRICA SORULUR (varsayilan: HAYIR):
+     - Ayarlariniz (config.json — tus atamalari, profiller) silinsin mi?
+       Programi tekrar kuracaksaniz "hayir" deyin; ayar dosyasi kalir.
+     - Program klasorunun tamami cop kutusuna tasinsin mi?
+       Kalici silme degildir, cop kutusundan geri alinabilir.
+
+  KLAVYENIN KENDISI: Karttaki firmware SILINMEZ. Cihaz bilgisayara
+  takildiginda tuslar calismaya devam eder (bilgisayar uygulamasi
+  olmadan da kisayol ve medya tuslari islevini surdurur). Karti
+  tamamen bosaltmak isterseniz BOOT+RST ile yukleme moduna alip:
+       esptool.py --chip esp32s3 erase_flash
+
+
+---------------------------------------------------------------------
+  SORUN GIDERME
+---------------------------------------------------------------------
+
+"Baslat.command hasar gordugu icin acilamiyor" (macOS)
+     - Gatekeeper karantinasi. Yukaridaki "ONCE BUNU YAPIN" adimini
+       uygulayin (macOS-ILK-ADIM-OKU.command veya  xattr -cr <klasor>).
+     - Alternatif: dosyaya SAG TIK > Ac > cikan uyarida yine "Ac".
+
+  "Cihaz bulunamadi"
+     - Kablo kartin "USB" yazan konnektorunde mi?
+     - Kablo VERI kablosu mu? (Sarj-only kablolar gorunmez.)
+     - Hub/dock yerine dogrudan bilgisayara takin.
+     - Karttaki kirmizi guc LED'i yaniyor mu?
+
+  Tuslar calisiyor ama metin/kisayol yazilmiyor (macOS)
+     - Erisilebilirlik izni verilmemis. Bkz. ADIM 3.
+
+  Enkoder eylemleri calismiyor
+     - Enkoder HID modundadir. Enkoder sekmesinden HOST'a gecin.
+
+  Telefon baglanamiyor
+     - Telefon sekmesindeki anahtar acik mi? (varsayilan KAPALI)
+     - Telefon ve bilgisayar AYNI Wi-Fi aginda olmali.
+     - Adres jeton icerir; QR'i yeniden okutun (eski baglanti gecersizdir).
+     - Windows'ta Guvenlik Duvari'nda uygulamaya izin verin.
+
+  LED'ler yanmiyor
+     - LED & Cihaz sekmesinde parlakligi 60 civarina cekin (0 = sonuk).
+
+=====================================================================

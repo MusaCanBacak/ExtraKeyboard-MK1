@@ -46,7 +46,7 @@ olacağından önce uygulamayı kapat.
 |---|---|---|---|
 | **1** | Kabloyu taktım, **hiçbir LED yanmıyor**, bilgisayar da hiçbir şey algılamıyor | Kablo **şarj kablosu** — içinde veri damarı yok | Bilinen bir veri kablosuyla dene. Telefonla dosya aktarabildiğin kablo veri kablosudur. |
 | **2** | Aynı belirti, kablo veri kablosu | DevKit'in **yanlış USB portuna** takılmışsın | DevKitC-1'de iki USB-C soketi vardır. Normal kullanım için **`USB`** yazan (yerleşik OTG, GPIO19/20) porta tak. `UART` portu yalnızca firmware yükleme içindir. |
-| **3** | Güç LED'i yanıyor ama LED1/2/3 sönük, seri port yok | **Firmware yüklü değil** veya cihaz bootloader'da takılı | `UART` portundan `pio run -t upload` ile firmware yükle. Bkz. madde 57–62. |
+| **3** | Güç LED'i yanıyor ama LED1/2/3 sönük, seri port yok | **Firmware yüklü değil** veya cihaz bootloader'da takılı | Firmware yükle: kök README → **4. Firmware** (hazır imaj + yükleyici, kartı `USB` soketinden). `pio run -t upload` kullanma — kart açılmaz. Bkz. madde 57–62. |
 | **4** | Windows'ta Aygıt Yöneticisi'nde **"Bilinmeyen USB Aygıtı (Aygıt Tanımlayıcı İsteği Başarısız)"** | USB veri hattı sorunu, kablo kalitesi veya hub | Kabloyu doğrudan bilgisayara tak, **hub kullanma**. Farklı bir USB portu dene (arka paneldeki anakart portlarını tercih et). |
 | **5** | macOS'ta `ls /dev/cu.usbmodem*` boş dönüyor | Cihaz CDC olarak sayılmamış | USB'yi çıkar, 10 saniye bekle, tekrar tak. Hâlâ yoksa: `system_profiler SPUSBDataType \| grep -A6 "ExtraKeyboard"` ile USB katmanında görünüyor mu bak. |
 | **6** | Cihaz bir bilgisayarda görünüyor, diğerinde görünmüyor | Ön panel USB portu yetersiz akım veriyor veya USB 2.0 hub arkasında | Arka paneldeki doğrudan USB portunu kullan. Toplam çekim < 150 mA'dır, normal bir port fazlasıyla yeter — sorun genelde hub'dadır. |
@@ -211,7 +211,7 @@ olacağından önce uygulamayı kapat.
 
 | # | Belirti | Olası neden | Çözüm |
 |---|---|---|---|
-| **80** | `pio run -t upload` **"Connecting…"** aşamasında takılıyor, sonra zaman aşımı | Cihaz bootloader moduna girmemiş | Elle bootloader'a al: **BOOT** düğmesini basılı tut → **RESET (EN)**'e bir kez bas ve bırak → **BOOT**'u bırak → yüklemeyi tekrar başlat. |
+| **80** | Yükleme **"Connecting…"** aşamasında takılıyor, sonra zaman aşımı | Cihaz bootloader moduna girmemiş | Elle bootloader'a al: **BOOT** düğmesini basılı tut → **RESET (EN)**'e bir kez bas ve bırak → **BOOT**'u bırak → yüklemeyi tekrar başlat. |
 | **81** | Yükleme sırasında **"Serial port busy" / "Access denied"** | Port başka bir programda açık | `pio device monitor`, Arduino IDE, PuTTY/screen ve **ExtraKeyboard uygulamasını** kapat. |
 | **82** | Yükleme **`UART` portundan** olmuyor | Yanlış porta bağlanmışsın | DevKitC-1'de iki USB-C soketi var. Firmware yükleme için **`UART`** yazan sokete tak. Normal kullanım için `USB` soketi. |
 | **83** | Yükleme başarılı ama cihaz **hiç açılmıyor / sürekli yeniden başlıyor** | **Yasak bir GPIO** kullanılmış (boot strapping) | Spec §3.2'yi kontrol et: **GPIO0, 3, 19, 20, 26–32, 33–37, 43, 44, 45, 46** kullanılamaz. Özellikle **GPIO0 veya 46 açılışta LOW ise** cihaz bootloader'a düşer. Bir anahtar telini yanlışlıkla oraya bağlamış olabilirsin. |

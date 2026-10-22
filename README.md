@@ -2,7 +2,7 @@
 
 **ESP32-S3 tabanlı, USB'den çalışan, kendin yapabileceğin bir makro klavye — ve onu yöneten masaüstü uygulaması.**
 
-`Firmware 3.0.0` · `ESP32-S3` · `macOS + Windows` · `Türkçe arayüz` · `Açık yapım tarifi`
+`Firmware 3.0.0` · `ESP32-S3` · `macOS + Windows` · `Türkçe arayüz` · `Açık yapım tarifi` · `Ticari olmayan lisans`
 
 ![ExtraKeyboard uygulaması — tuş atama paneli](docs/images/01-tuslar.png)
 
@@ -160,7 +160,7 @@ gönderir. İki taraf da karşısının yaşadığını böyle anlar.
 
 | Parça | Klavye | Numpad | Not |
 |---|---|---|---|
-| ESP32-S3-DevKitC-1 | 1 | 1 | **N16R8 önerilir**; 8 MB flash + 2 MB PSRAM'li kart da çalışır |
+| ESP32-S3-DevKitC-1 | 1 | 1 | **N16R8 önerilir**; N8R2 (8 MB flash + 2 MB PSRAM) da çalışır |
 | MX uyumlu mekanik anahtar | 12 | 16 | Örn. Cherry MX Blue |
 | 1U tuş başlığı (keycap) | 12 | 16 | |
 | EC11 döner enkoder + knob | 1 | — | Butonlu, M7 burç |
@@ -227,58 +227,65 @@ da burada. Baskı ve montaj notları: [`mechanical/OKU-ONCE.md`](mechanical/OKU-
 
 ### 4. Firmware
 
-Gerekenler: [PlatformIO](https://platformio.org/) ve `esptool`
-(`pip install esptool` ya da PlatformIO'nun içindeki).
+**4.1 Hazır imajla yükleme (önerilen).** Derlemeye gerek yok.
 
-**4.1 Kartını tanı.** ESP32-S3 modülleri aynı görünse de bellek tipleri farklı
-olabilir ve **yanlış ayar kartı hiç açılmaz hâle getirir.** BOOT'u basılı tutup
-RST'ye basıp bırak, BOOT'u bırak (indirme modu), sonra:
+1. [Sürümler](https://github.com/MusaCanBacak/ExtraKeyboard-MK1/releases/latest)
+   sayfasından `ExtraKeyboard-Firmware.zip` dosyasını indirip açın (tam kurulum
+   paketindeki `2-FIRMWARE/` klasörü de aynısıdır).
+2. ExtraKeyboard uygulaması açıksa kapatın ve kartı **"USB"** soketinden takın.
+3. macOS'ta `Yukle-macOS.command`, Windows'ta `Yukle-Windows.bat` dosyasına çift
+   tıklayın. Linux: `pip install -r gereksinimler.txt && python3 yukle.py`.
 
-```bash
-esptool.py --chip esp32s3 flash_id
-```
+Yükleyici kartı USB kimliğinden bulur ve kutuyu açmadan indirme moduna alır. Kartta
+çalışan bir firmware yoksa sizden BOOT+RST ister. Ardından modülü (N16R8 / N8R2)
+esptool ile kendisi tanır, klavye mi numpad mi olduğunu sorar ve DIO / 40 MHz imajı
+yazar. Cihazdaki ayarlar korunur. Son olarak kartı yeniden başlatıp kalp atışını
+doğrular. Python 3.8+ gerekir; esptool ve pyserial ilk çalıştırmada klasördeki
+`.venv`'e kurulur.
 
-| Çıktıda | Ortam |
-|---|---|
-| `Embedded PSRAM 2MB` + `Detected flash size: 8MB` | `quad` |
-| `Embedded PSRAM 8MB` + `Detected flash size: 16MB` (N16R8) | `n16r8` |
-
-**4.2 Derle.**
-
-```bash
-cd firmware && pio run -e quad          # ya da: -e n16r8
-cd firmware-numpad && pio run           # numpad (8 MB flash + 2 MB PSRAM)
-```
-
-**4.3 İlk yükleme.** Kart indirme modundayken (4.1'deki gibi):
+Her varyantın tek dosyalık imajı da Sürümler sayfasında ayrıca durur
+(`ExtraKeyboard-<klavye|numpad>-<n16r8|n8r2>.bin`). Her biri bootloader, bölüm tablosu
+ve uygulamayı içerir ve `0x0`'a yazılır:
 
 ```bash
-cd firmware
-esptool.py --chip esp32s3 --port <PORT> --baud 460800 \
-  --before no_reset --after hard_reset write_flash \
-  --flash_mode dio --flash_freq 40m --flash_size 8MB \
-  0x0     .pio/build/quad/bootloader.bin \
-  0x8000  .pio/build/quad/partitions.bin \
-  0xe000  ~/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin \
-  0x10000 .pio/build/quad/firmware.bin
+esptool --chip esp32s3 --port <PORT> write-flash 0x0 ExtraKeyboard-klavye-n16r8.bin
 ```
 
-`n16r8` için `--flash_size 16MB` ve `.pio/build/n16r8/` kullanın. `<PORT>`, macOS'ta
-`/dev/cu.usbmodem…`, Windows'ta `COM…` olur. Yazma bitince kart açılmazsa RST'ye
-bir kez basın ya da kabloyu çıkarıp takın.
+(esptool 4.x'te komut `write_flash`.) Elle yazma cihazdaki ayarları da sıfırlar.
+Yazmadan sonra kart açılmazsa USB kablosunu çıkarıp takın.
 
 > **⚠️ `pio run -t upload` kullanmayın.** PlatformIO imajı QIO / 80 MHz yazar; bu
 > kartlarda kullanılan bazı flash çipleri (Boya) bu ayarla okunamaz ve kart **boot
 > döngüsüne** girer (seri çıktıda `ets_loader.c 78`). `--flash_mode dio
-> --flash_freq 40m` her çipte güvenlidir.
+> --flash_freq 40m` her çipte güvenlidir; hazır imajlar bu başlıkla gelir.
 
-**4.4 Sonraki güncellemeler — kutuyu açmadan.** Bu firmware'de kart, uygulama
-portundan gelen `CMD BOOTLOADER CONFIRM` komutuyla kendini indirme moduna alır.
-[`tools/yukle-kutusuz.py`](tools/yukle-kutusuz.py) tüm zinciri tek komutta yürütür:
-kartı USB seri numarasından tanır → kendi ortamını derler → indirme moduna alır →
-DIO / 40 MHz ile yazar → indirme bayrağını temizleyip resetler → kalp atışını
-doğrular. Kendi kartınızı önce dosyadaki `BIRIMLER` tablosuna ekleyin; tanımadığı
-kartı bilerek reddeder.
+**4.2 Kaynaktan derleme.** Gerekenler: [PlatformIO](https://platformio.org/).
+ESP32-S3 modülleri aynı görünse de bellek tipleri farklı olabilir ve **yanlış ortam
+kartı hiç açılmaz hâle getirir.** Modülünüzü `python3 yukle.py --tani` (yazma
+yapmaz) ya da kart indirme modundayken `esptool --chip esp32s3 flash-id` (4.x:
+`flash_id`) ile öğrenin:
+
+| Çıktıda | Modül | Klavye ortamı | Numpad ortamı |
+|---|---|---|---|
+| `Embedded PSRAM 8MB` + `Detected flash size: 16MB` | N16R8 | `n16r8` | `numpad_n16r8` |
+| `Embedded PSRAM 2MB` + `Detected flash size: 8MB` | N8R2 | `quad` | `extrakeyboard` |
+
+```bash
+cd firmware && pio run -e n16r8                 # ya da: -e quad
+cd firmware-numpad && pio run -e numpad_n16r8   # ya da: -e extrakeyboard
+```
+
+Dört genel imajı tek komutla derleyip birleştirmek ve doğrulamak için
+[`tools/imaj-olustur.py`](tools/imaj-olustur.py) var. Çıktı
+`dagitim/ExtraKeyboard-Firmware/imajlar/` klasörüne yazılır; oradaki `yukle.py`
+bunları doğrudan kullanır. Kendi birleştirdiğiniz bir imajı `yukle.py --imaj <dosya>`
+ile yazabilirsiniz.
+
+**4.3 Kendi birimleriniz için geliştirici aracı.**
+[`tools/yukle-kutusuz.py`](tools/yukle-kutusuz.py) kartı USB seri numarasından tanır,
+**o birimin** ortamını derleyip kutuyu açmadan yükler. Tuş eşlemesi farklı birimler
+(ör. `e74610`) bu yolla güncellenir. Kendi kartınızı önce dosyadaki `BIRIMLER`
+tablosuna ekleyin; araç tanımadığı kartı bilerek reddeder.
 
 ```bash
 python tools/yukle-kutusuz.py
@@ -304,8 +311,8 @@ doğru `EV KEY n` satırının geldiğini görün. Enkoderi çevirin, COMBO ve O
    **Girdi İzleme** izinlerini verin, sonra uygulamayı **kapatıp yeniden açın.**
    İzin verilmezse kısayol ve metin eylemleri sessizce hiçbir şey yapmaz.
 
-> Paketteki `2-FIRMWARE` ve `3-DONANIM` klasörleri eskidir. Firmware'i ve donanım
-> belgelerini bu depodan alın.
+> Paket ayrıca firmware yükleyicisini ve imajları (`2-FIRMWARE/`, bkz.
+> [4.1](#4-firmware)) ve donanım belgelerini (`3-DONANIM/`) içerir.
 
 ### Kaynaktan (macOS / Windows)
 
@@ -345,7 +352,7 @@ python run_app.py
 |---|---|
 | Bağlantı kopup geliyor | Uygulamanın olay günlüğüne bakın: macOS'ta `~/Library/Logs/ExtraKeyboard.log` (Windows: `%LOCALAPPDATA%\ExtraKeyboard\`). Kart her resetten sonra nedenini oraya yazar (`DBG BOOT reset=…`). Aynı USB hub'ında **sürekli resetlenen başka bir cihaz** varsa ayrı bir porta takın. |
 | Uygulama bağlanamıyor | Portu başka bir program tutuyor olabilir (Arduino / PlatformIO seri monitörü). Seri port aynı anda tek programa açılır. |
-| Kart hiç açılmıyor, yalnızca `USB JTAG/serial debug unit` görünüyor | Yanlış ortam ya da QIO yazımı. 4.1'deki gibi kartı tanıyıp DIO / 40 MHz ile yeniden yazın. |
+| Kart hiç açılmıyor, yalnızca `USB JTAG/serial debug unit` görünüyor | Kart indirme modunda kalmış olabilir: USB kablosunu çıkarıp takın. Düzelmezse yanlış ortam ya da QIO yazımıdır; [yükleyiciyi](#4-firmware) çalıştırın, kartı kendisi tanıyıp DIO / 40 MHz ile yeniden yazar. |
 | Seri port var ama klavye olarak görünmüyor | `ARDUINO_USB_MODE=0` bayrağı eksik ya da kablo "UART" soketinde. |
 | Üst sıradaki tuşlar yer değiştirmiş | `keys.cpp` → `KEY_PINS` sırası ([PIN-HARITASI.md](PIN-HARITASI.md)). |
 | macOS'ta kısayollar çalışmıyor | Erişilebilirlik + Girdi İzleme izni verip uygulamayı yeniden açın. |
@@ -361,7 +368,7 @@ Daha fazlası: [`docs/08-SORUN-GIDERME.md`](docs/08-SORUN-GIDERME.md) ve
 
 | Konu | Değer |
 |---|---|
-| MCU | ESP32-S3-DevKitC-1 (N16R8 ya da 8 MB flash + 2 MB Quad PSRAM) |
+| MCU | ESP32-S3-DevKitC-1 (N16R8 ya da N8R2: 8 MB flash + 2 MB Quad PSRAM) |
 | USB | HID Klavye + HID Tüketici + CDC seri, tek kablo (TinyUSB, `ARDUINO_USB_MODE=0`). Görünen ürün `ExtraKeyboard MK1`, üretici `BlueDevelopment` |
 | Protokol | Satır tabanlı ASCII. Cihaz → PC: `EV KEY / EV COMBO / EV OS / EV ENC / HB / ID / ACK`. PC → cihaz: `CMD ID / PING / OS / LED / ENC MODE / HIDFB / SAVE / BOOTLOADER CONFIRM`. Ayrıntı: [`docs/03-PROTOKOL.md`](docs/03-PROTOKOL.md) |
 | Tuş okuma | Matris yok, diyot yok, `INPUT_PULLUP`; yazılım debounce 8 ms |
@@ -377,6 +384,9 @@ Daha fazlası: [`docs/08-SORUN-GIDERME.md`](docs/08-SORUN-GIDERME.md) ve
 ```
 ExtraKeyboard-MK1/
 ├── README.md                 # bu dosya
+├── LICENSE.md                # yazılım lisansı (PolyForm Noncommercial 1.0.0)
+├── LICENSE-CC-BY-NC-SA-4.0.txt  # donanım ve belge lisansı
+├── LISANS.md                 # lisansların Türkçe açıklaması
 ├── PIN-HARITASI.md           # güncel pin haritası (klavye + numpad) — donanımdan doğrulandı
 ├── run_app.py                # uygulamayı kaynaktan başlatır
 ├── requirements.txt
@@ -389,14 +399,15 @@ ExtraKeyboard-MK1/
 │   └── ui/                   # ana pencere, tuş ızgarası, combo matrisi, eylem düzenleyici
 │
 ├── firmware/                 # klavye firmware'i (PlatformIO: quad / n16r8 / e74610)
-├── firmware-numpad/          # numpad firmware'i
+├── firmware-numpad/          # numpad firmware'i (extrakeyboard / numpad_n16r8)
 │
 ├── hardware/                 # BOM, şematik, kablolama tablosu
 ├── mechanical/               # OpenSCAD gövde/plaka/knob + DXF üretici
 ├── docs/                     # ayrıntılı belgeler + ekran görüntüleri
-├── tools/                    # kutusuz yükleme, .app paketleme (PyInstaller), öz kontrol
+├── tools/                    # imaj üretimi, kutusuz yükleme, .app paketleme (PyInstaller), öz kontrol
 ├── varliklar/                # uygulama simgesi
-└── dagitim/                  # kurulum paketi iskeleti (zip'ler Sürümler sayfasında)
+└── dagitim/                  # kurulum paketi iskeleti + firmware yükleyicisi
+                              # (zip'ler ve imajlar Sürümler sayfasında)
 ```
 
 `Main.py` ve `macro_config.json`, eski v2 sürümünden kalmadır; v2 ayarları ilk
@@ -428,6 +439,20 @@ ExtraKeyboard-MK1/
 ---
 
 ## Sürüm notları
+
+### 2026-10 — hazır firmware imajları, yükleyici, lisans
+
+- **Hazır imajlar:** her modül ve varyant için tek dosyalık imaj (klavye / numpad ×
+  N16R8 / N8R2), DIO / 40 MHz başlığı gömülü. Eski paketteki her karta 16 MB yazan
+  yükleyici, eski derlenmiş dosyalar ve bakımı kesilmiş Arduino IDE kopyası kaldırıldı.
+- **Yeni yükleyici** (`yukle.py`, macOS / Windows / Linux): kartı kimliğinden bulur,
+  modülü tanır, kutuyu açmadan ve ayarları koruyarak yazar, sonucu doğrular.
+- **Firmware:** `CMD BOOTLOADER CONFIRM` indirme bayrağını USB geçişinden önce
+  kuruyor. Önceki bir esptool oturumunun hemen ardından kart, indirme modu yerine
+  ara sıra yine firmware'e açılıyordu.
+- **Numpad** için N16R8 ortamı (`numpad_n16r8`).
+- **Lisans:** yazılım PolyForm Noncommercial 1.0.0, donanım ve belgeler
+  CC BY-NC-SA 4.0 (bkz. [Lisans](#lisans)).
 
 ### 2026-09 — bağlantı güvenilirliği
 
@@ -463,12 +488,18 @@ iki yönlüdür ve genişletilebilir. v2'nin `macro_config.json` ayarları otoma
 
 ## Lisans
 
-Bu depoda ayrı bir lisans dosyası bulunmamaktadır; tüm hakları saklıdır.
-Kişisel ve eğitim amaçlı kullanım, çoğaltma ve değiştirme serbesttir.
-Ticari kullanım için **BlueDevelopment** ile iletişime geçin.
+Telif hakkı © 2026 BlueDevelopment. Kişisel, eğitim ve diğer **ticari olmayan**
+kullanımlar serbesttir. Kopyalayabilir, değiştirebilir, kendiniz yapabilir ve
+paylaşabilirsiniz.
 
-Üçüncü taraf bileşenler kendi lisanslarına tabidir (Arduino-ESP32, TinyUSB,
-CustomTkinter, pyserial, pyautogui, pystray, Pillow, pyperclip, tkinterdnd2, qrcode).
+| Kapsam | Lisans |
+|---|---|
+| Yazılım: uygulama, firmware, araçlar, derlenmiş imajlar | [PolyForm Noncommercial 1.0.0](LICENSE.md) |
+| Donanım tasarımı ve belgeler: `hardware/`, `mechanical/`, `docs/`, bu README | [CC BY-NC-SA 4.0](LICENSE-CC-BY-NC-SA-4.0.txt) |
+
+**Ticari kullanım** (satmak, bir ürüne ya da ücretli hizmete dahil etmek) için izin
+gerekir; [GitHub'da bir konu açın](https://github.com/MusaCanBacak/ExtraKeyboard-MK1/issues).
+Türkçe açıklama ve üçüncü taraf bileşenlerin lisansları: [`LISANS.md`](LISANS.md).
 
 ---
 

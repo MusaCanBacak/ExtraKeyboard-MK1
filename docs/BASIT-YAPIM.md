@@ -286,8 +286,11 @@ her anahtarın GND bacağına sırayla lehimle, ucunu karttaki GND'ye götür.
 8. **LED'leri** bezel arkasına yerleştir, zinciri lehimle. **DIN/DOUT yönüne dikkat.**
 9. **GÜÇ VERMEDEN ÖNCE:** multimetre ile 5V ↔ GND arası kısa devre kontrolü.
    Kısa varsa USB portunu yakarsın.
-10. **Firmware'i yükle** → [04-FIRMWARE-KURULUM.md](04-FIRMWARE-KURULUM.md).
-    En kritik ayar: `ARDUINO_USB_MODE=0`, yoksa HID hiç çalışmaz.
+10. **Firmware'i yükle** — hazır imaj ve yükleyiciyle: kurulum paketinde
+    `2-FIRMWARE/`, depoda [README → 4. Firmware](../README.md#4-firmware).
+    Yükleyici modülü kendisi tanır. Kaynaktan derlemek için:
+    [04-FIRMWARE-KURULUM.md](04-FIRMWARE-KURULUM.md); en kritik ayar
+    `ARDUINO_USB_MODE=0`, yoksa HID hiç çalışmaz.
 11. **Test et:** 11 tuş, enkoder iki yön + basış, 3 LED, combo, OS geçişi.
 12. **Süngeri** taban içine yapıştır (anahtar altına ve bölmedeki ESP32'ye değmesin).
     ⚠️ **Kablolama ve test tamamen bitmeden kapağı çıtlatma** — her açma-kapama
