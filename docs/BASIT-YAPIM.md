@@ -186,7 +186,7 @@ Hazır bir 6 mm enkoder düğmesi de olur.
 | Tel 26 AWG | ~2 m | ~2 m | **Çok damarlı**; tek damarlı tel anahtar dibinde kırılır |
 | Isıyla daralan makaron | biraz | biraz | LED dirençleri ve tel eklerini yalıtmak için |
 | Silikon ayak ⌀8 mm | 4 | 4 | |
-| Sünger (poron/EVA) 3 mm | 1 | 1 | İsteğe bağlı. Blue anahtarın boş kovukta çınlamasını azaltır |
+| Sünger (poron/EVA) 3 mm | 1 | 1 | Önerilir. Blue anahtarın boş kovukta çınlamasını azaltır |
 | USB **veri** kablosu | 1 | 1 | Şarj-only kablo çalışmaz |
 | Baskı | gövde, klavye plakası, düğme | gövde, numpad plakası | [`mechanical/stl/`](../mechanical/stl/) |
 

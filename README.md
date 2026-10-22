@@ -162,17 +162,18 @@ gönderir. İki taraf da karşısının yaşadığını böyle anlar.
 |---|---|---|---|
 | ESP32-S3-DevKitC-1 | 1 | 1 | **N16R8 önerilir**; N8R2 (8 MB flash + 2 MB PSRAM) da çalışır |
 | MX uyumlu mekanik anahtar | 12 | 16 | Örn. Cherry MX Blue |
-| 1U tuş başlığı (keycap) | 12 | 16 | |
-| EC11 döner enkoder + knob | 1 | — | Butonlu, M7 burç |
-| Düz LED (3 veya 5 mm) | 3 | 2 | Tek renk, renk serbest |
+| 1U tuş başlığı (keycap) | 12 | 16 | MX uyumlu herhangi biri |
+| EC11 döner enkoder | 1 | — | Butonlu, M7 burç; düğmesi baskı (`enkoder-dugmesi.stl`) |
+| Düz LED 3 mm | 3 | 2 | Tek renk, renk serbest; plakadaki pencere ⌀3.2 |
 | 330 Ω direnç | 3 | 2 | Her LED'e bir tane |
 | 10 kΩ direnç + 100 nF kondansatör | 2 + 2 | — | Enkoder A/B için RC filtresi |
 | 26 AWG çok telli silikon tel | ~2 m | ~2 m | |
+| M2 vida, 6–8 mm | 4 | 4 | Üst plakayı gövdeye tutar |
 | USB-C **veri** kablosu | 1 | 1 | Şarj kablosu çalışmaz |
 | Gövde | 3D baskı | 3D baskı | PETG önerilir — bkz. [Gövde](#3-gövde) |
 
 Fiyatlı tam liste: [`hardware/BOM.csv`](hardware/BOM.csv) (klavye için zorunlu
-malzeme ≈ 2.400 TL, 2026 tahmini).
+malzeme ≈ 2.280 TL, 2026 tahmini).
 
 ### 2. Kablolama
 
