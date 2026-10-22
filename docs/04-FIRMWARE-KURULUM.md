@@ -30,7 +30,7 @@
 Ortamı zaten kurmuş olanlar için özet:
 
 ```bash
-cd /Users/musacanbacak/PycharmProjects/ExtraKeyboard/firmware
+cd ~/ExtraKeyboard-MK1/firmware
 
 pio device list                 # portları listele
 pio run                         # sadece derle
@@ -41,6 +41,14 @@ pio run -t erase                # flash'ı tamamen sil (NVS dahil)
 
 **Kartı bootloader moduna alma:** `BOOT` tuşunu basılı tut → `RST` tuşuna bas ve
 bırak → `BOOT` tuşunu bırak.
+
+> **⚠️ Bu projenin kartlarında `pio run -t upload` KULLANMAYIN.** PlatformIO
+> imajı QIO / 80 MHz olarak yazar; bu kartlardaki Boya flash çipleri bu ayarla
+> ROM tarafından okunamaz ve kart **boot döngüsüne** girer (seri çıktıda
+> `ets_loader.c 78`). Ayrıca modüller arasında bellek tipi farklıdır
+> (`[env:quad]` / `[env:n16r8]`). Doğru yazma yordamı — `--flash_mode dio
+> --flash_freq 40m`, birim ortamları ve kutusuz güncelleme — için kök dizindeki
+> **README.md → Firmware** bölümüne bakın.
 
 ---
 
@@ -306,7 +314,7 @@ ExtraKeyboard/
 ### 2.2 VS Code ile açma (A yolu)
 
 1. VS Code → **File → Open Folder…**
-2. `/Users/musacanbacak/PycharmProjects/ExtraKeyboard/firmware` klasörünü seçin.
+2. `~/ExtraKeyboard-MK1/firmware` klasörünü seçin.
 3. VS Code "Do you trust the authors of the files in this folder?" derse
    **Yes, I trust the authors**.
 4. PlatformIO `platformio.ini` dosyasını görünce projeyi otomatik tanır ve
@@ -330,7 +338,7 @@ ExtraKeyboard/
 ### 2.3 Terminalden açma (B yolu)
 
 ```bash
-cd /Users/musacanbacak/PycharmProjects/ExtraKeyboard/firmware
+cd ~/ExtraKeyboard-MK1/firmware
 ls -la
 # platformio.ini ve src/ görmelisiniz
 
@@ -631,7 +639,7 @@ Anımsatıcı: **"BOOT'u tut, RST'ye dokun, BOOT'u bırak."**
 Önce sadece derleyip hataları görün:
 
 ```bash
-cd /Users/musacanbacak/PycharmProjects/ExtraKeyboard/firmware
+cd ~/ExtraKeyboard-MK1/firmware
 pio run
 ```
 
@@ -791,7 +799,7 @@ VID/PID'i bulamazsa bu dizeye düşer (spec §4).
 ### 6.1 Monitörü açma
 
 ```bash
-cd /Users/musacanbacak/PycharmProjects/ExtraKeyboard/firmware
+cd ~/ExtraKeyboard-MK1/firmware
 pio device monitor
 ```
 
@@ -1154,7 +1162,7 @@ yanıt vermiyor.
 **Neden 1 — `ARDUINO_USB_MODE` yanlış (en sık neden)**
 
 ```bash
-grep ARDUINO_USB_MODE /Users/musacanbacak/PycharmProjects/ExtraKeyboard/firmware/platformio.ini
+grep ARDUINO_USB_MODE ~/ExtraKeyboard-MK1/firmware/platformio.ini
 ```
 
 `-D ARDUINO_USB_MODE=0` görmelisiniz. `1` ise cihaz USB Serial/JTAG denetleyicisi
@@ -1394,7 +1402,7 @@ saklar:
 bootloader ve **NVS dahil** her şey.
 
 ```bash
-cd /Users/musacanbacak/PycharmProjects/ExtraKeyboard/firmware
+cd ~/ExtraKeyboard-MK1/firmware
 
 # 1. Kartı bootloader moduna al (bölüm 4.3)
 # 2. Flash'ı tamamen sil
@@ -1499,8 +1507,8 @@ Tuş ve combo atamalarını sıfırlamak için:
 
 ```bash
 # Yedek al
-mv /Users/musacanbacak/PycharmProjects/ExtraKeyboard/config.json \
-   /Users/musacanbacak/PycharmProjects/ExtraKeyboard/config.json.yedek
+mv ~/ExtraKeyboard-MK1/config.json \
+   ~/ExtraKeyboard-MK1/config.json.yedek
 ```
 
 Uygulama bir sonraki açılışta varsayılan şema 3 yapılandırmasını yeniden üretir
@@ -1512,7 +1520,7 @@ Derleme hataları mantıksızsa (bayrak değiştirdiğiniz hâlde eski davranı�
 sürüyorsa) önbelleği temizleyin:
 
 ```bash
-cd /Users/musacanbacak/PycharmProjects/ExtraKeyboard/firmware
+cd ~/ExtraKeyboard-MK1/firmware
 pio run -t clean          # yalnızca derleme çıktıları
 rm -rf .pio               # tam temizlik (araç zinciri korunur)
 pio run

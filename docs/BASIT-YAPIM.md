@@ -249,20 +249,21 @@ her anahtarın GND bacağına sırayla lehimle, ucunu karttaki GND'ye götür.
 
 ### 5.3 LED'ler
 
-3 adet WS2812B zincir hâlinde, **DOUT → DIN**:
+3 adet **düz (tek renk) LED**, her biri kendi pininde ve kendi direnciyle:
 
 ```
-   DevKit 5V ──[1N4148]──┬── LED1 5V ── LED2 5V ── LED3 5V
-                        ═╪═ 1000 µF
-   DevKit GND ───────────┴── LED1/2/3 GND
-
-   GPIO14 ──[330 Ω]── LED1 DIN → DOUT → LED2 DIN → DOUT → LED3 DIN
+   GPIO14 ──[330 Ω]──► LED1 anot (uzun bacak) ── katot ──┐   Windows
+   GPIO42 ──[330 Ω]──► LED2 anot              ── katot ──┤   macOS
+   GPIO41 ──[330 Ω]──► LED3 anot              ── katot ──┘   COMBO
+                                                         GND
 ```
 
-> **1N4148 atlanamaz.** WS2812B, 5 V'ta çalışırken veriyi tanımak için en az
-> 3.5 V ister; ESP32 çıkışı 3.3 V. Diyot besleme rayını 4.3 V'a düşürünce eşik
-> 3.0 V'a iner ve 3.3 V güvenle tanınır. Diyotsuz LED'ler rastgele titrer veya
-> hiç yanmaz — "LED çalışmıyor" şikayetinin 1 numaralı sebebi budur.
+> Uzun bacak (anot) dirence, kısa bacak (katot) GND'ye. Ters takılan LED
+> yanmaz ama zarar da görmez — çevirip tekrar dene.
+>
+> **Not:** Projenin ilk sürümü 3 × WS2812B (adreslenebilir RGB) kullanıyordu;
+> o devre 1N4148 diyot ve 1000 µF kondansatör gerektiriyordu. Güncel firmware
+> düz LED sürer, WS2812B devresi artık kullanılmaz.
 
 ---
 
@@ -323,7 +324,7 @@ En kolayı: Finder'da **`ExtraKeyboard-Baslat.command`** dosyasına çift tıkla
 (ilk seferde sağ tık → Aç). Terminalden istersen:
 
 ```bash
-cd "/Users/musacanbacak/Desktop/Extra Keyboard" && .venv/bin/python run_app.py
+cd ~/ExtraKeyboard-MK1 && .venv/bin/python run_app.py
 ```
 
 Cihazsız her şeyin yerinde olduğunu doğrulamak için:

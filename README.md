@@ -1,8 +1,29 @@
 # ExtraKeyboard MK1
 
-**11 tuşlu, 3 LED'li, döner enkoderli, USB'den çalışan harici makro klavye.**
+**ESP32-S3 tabanlı, USB'den çalışan, kendin yapabileceğin bir makro klavye — ve onu yöneten masaüstü uygulaması.**
 
-`Sürüm 3.0.0` · `Donanım MK1` · `ESP32-S3` · `Windows + macOS` · `Türkçe arayüz`
+`Firmware 3.0.0` · `ESP32-S3` · `macOS + Windows` · `Türkçe arayüz` · `Açık yapım tarifi`
+
+![ExtraKeyboard uygulaması — tuş atama paneli](docs/images/01-tuslar.png)
+
+---
+
+## İçindekiler
+
+- [Bu nedir?](#bu-nedir)
+- [Öne çıkan özellikler](#öne-çıkan-özellikler)
+- [Ekran görüntüleri](#ekran-görüntüleri)
+- [Klavye ve Numpad: iki varyant](#klavye-ve-numpad-iki-varyant)
+- [Nasıl çalışır](#nasıl-çalışır)
+- [Kendin yap](#kendin-yap)
+  - [1. Malzeme](#1-malzeme) · [2. Kablolama](#2-kablolama) · [3. Gövde](#3-gövde) · [4. Firmware](#4-firmware) · [5. Test](#5-test)
+- [Masaüstü uygulaması](#masaüstü-uygulaması)
+- [Sorun giderme](#sorun-giderme)
+- [Teknik özet](#teknik-özet)
+- [Dosya düzeni](#dosya-düzeni)
+- [Belgeler](#belgeler)
+- [Sürüm notları](#sürüm-notları)
+- [Lisans](#lisans)
 
 ---
 
@@ -14,79 +35,87 @@ metin yazın, kabuk komutu çalıştırın, sesi ayarlayın — hepsi parmağın
 
 Projenin temel kararı şudur: **mantık cihazda değil bilgisayardadır.**
 Cihaz yalnızca *"hangi tuşa basıldı"* bilgisini gönderir; *"ne yapılacağına"*
-bilgisayardaki Python uygulaması karar verir. Böylece bir eylemi değiştirmek için
-firmware yüklemek gerekmez, tek bir ayar penceresi yeterlidir.
-
-| Öğe | Adet | Görevi |
-|---|---|---|
-| İşlev tuşu `K1..K9` | 9 | Doğrudan atanabilir eylem |
-| Combo tuşu `K10` | 1 | Basılı tutulurken K1..K9'dan **2 tanesi** ile kombinasyon |
-| OS tuşu `K11` | 1 | Windows ⇄ macOS profili arasında geçiş |
-| Enkoder `ENC` | 1 | Döndür = ses aç/kıs, bas = sessize al |
-| Durum LED'i `LED1..LED3` | 3 | OS modu / Combo durumu / Bağlantı durumu |
-
-**Toplam atanabilir eylem:** 9 tuş + **36 combo** + 4 enkoder hareketi = **49 slot**,
-üstelik Windows ve macOS için **ayrı ayrı**.
+bilgisayardaki uygulama karar verir. Bir tuşun görevini değiştirmek için firmware
+yüklemek gerekmez, uygulamada tuşa tıklayıp yeni eylemi seçmek yeterlidir.
 
 ---
 
 ## Öne çıkan özellikler
 
-- **Sürücü gerektirmez.** ESP32-S3'ün yerleşik USB'si sayesinde cihaz standart
-  bir HID klavye + seri port olarak görünür. Tak ve çalıştır.
-- **36 kombinasyon.** `K10`'a bir kez basın (bas-çek), sonra iki tuşa dokunun; combo tetiklenince mod kendiliğinden kapanır. Sıra önemsizdir:
-  `2+5` ile `5+2` aynı komutu çalıştırır.
-- **10 farklı eylem tipi:** uygulama, URL, kısayol, metin, kabuk komutu, dosya,
+- **10 işlev tuşu + COMBO + OS tuşu + döner enkoder.** Enkoder varsayılan olarak
+  sesi ayarlar; basınca sessize alır.
+- **45 kombinasyon.** COMBO'ya bir kez basın, sonra iki işlev tuşuna dokunun.
+  Sıra önemsizdir: `2+5` ile `5+2` aynı comboyu çalıştırır. C(10, 2) = 45.
+- **10 eylem tipi:** uygulama, web adresi, kısayol, metin, kabuk komutu, dosya,
   klasör, medya tuşu, makro ve "hiçbir şey".
 - **Ayrı Windows / macOS profilleri.** Yollar ve kısayollar iki sistemde farklıdır;
-  cihazdaki OS tuşuyla anında geçilir.
-- **Uygulama kapalıyken de çalışır.** HID yedek modunda tuşlar `F13–F22`
-  gönderir, enkoder sesi doğrudan kontrol eder.
-- **Gerçek iki yönlü protokol.** Cihaz ile uygulama, satır tabanlı ASCII bir CDC
-  protokolüyle konuşur; LED renkleri, parlaklık ve OS modu uygulamadan yönetilir.
-- **Üç durum LED'i.** Hangi profildesiniz, combo modu açık mı, uygulama bağlı mı —
-  ekrana bakmadan görürsünüz.
-- **Baştan sona Türkçe.** Arayüz, dokümanlar ve hata mesajları Türkçedir.
+  cihazdaki OS tuşuyla anında geçilir. Birden çok profil tutulabilir.
+- **Uygulama kapalıyken de çalışır.** HID yedek modunda Tuş 1–10 sırasıyla
+  `F13`–`F22` gönderir, enkoder sesi doğrudan kontrol eder.
+- **Sürücü gerektirmez.** Cihaz standart bir HID klavye + seri port olarak görünür.
+- **Kutuyu açmadan firmware güncelleme.** Kart, uygulamadan gelen kasıtlı bir
+  komutla kendini indirme moduna alır; BOOT/RST düğmelerine erişmek gerekmez.
+- **Kendi kendini toparlayan bağlantı.** Kart tarafında bekçiler, uygulama tarafında
+  otomatik yeniden bağlanma ve her olayı nedeniyle kaydeden bir günlük.
+- **Telefondan izleme.** Uygulama, yerel ağda jetonla korunan bir sayfa sunarak tuş
+  atamalarını ve basılan tuşları telefonda canlı gösterebilir (varsayılan: kapalı).
+- **Numpad varyantı.** 16 tuşlu, gerçek sayısal tuş takımı kodları gönderen ikinci
+  bir cihaz; aynı kart, ayrı firmware.
+- **Baştan sona Türkçe.** Arayüz, belgeler ve hata mesajları Türkçedir.
 
 ---
 
-## Fiziksel yerleşim
+## Ekran görüntüleri
 
-4 sütun × 3 satır ızgara, **19.05 mm** (0.75") standart tuş adımı.
+<table>
+<tr>
+<td width="50%"><img src="docs/images/02-combolar.png" alt="Combolar sekmesi"><br><b>Combolar</b> — 45 kombinasyonun tamamı tek matriste; renkler eylem tipini gösterir.</td>
+<td width="50%"><img src="docs/images/07-eylem-duzenleyici.png" alt="Eylem düzenleyici"><br><b>Eylem düzenleyici</b> — bir tuşa tıklayınca açılır: ad, eylem tipi ve değer.</td>
+</tr>
+<tr>
+<td><img src="docs/images/03-enkoder.png" alt="Enkoder sekmesi"><br><b>Enkoder</b> — HID modunda sesi cihaz yönetir, HOST modunda dört hareket ayrı eylem çalıştırır.</td>
+<td><img src="docs/images/04-led-cihaz.png" alt="LED ve Cihaz sekmesi"><br><b>LED &amp; Cihaz</b> — parlaklık, LED testi, port seçimi ve cihazdan gelen satırların canlı günlüğü.</td>
+</tr>
+<tr>
+<td><img src="docs/images/05-telefon.png" alt="Telefon sekmesi"><br><b>Telefon</b> — yerel ağdan izleme sunucusu ve QR ile bağlanma.</td>
+<td><img src="docs/images/06-ayarlar.png" alt="Ayarlar sekmesi"><br><b>Ayarlar</b> — tema, açılış davranışı ve profil yönetimi.</td>
+</tr>
+</table>
 
-```
-        SÜTUN 1     SÜTUN 2     SÜTUN 3     SÜTUN 4
-      +-----------+-----------+-----------+-----------+
-SATIR |           |           |           |    ( )    |
-  1   |    K1     |    K2     |    K3     |    ENC    |   ← Enkoder (ses)
-      |           |           |           |   knob    |
-      +-----------+-----------+-----------+-----------+
-SATIR |           |           |           |           |
-  2   |    K4     |    K5     |    K6     |    K10    |   ← COMBO
-      |           |           |           |  [COMBO]  |
-      +-----------+-----------+-----------+-----------+
-SATIR |           |           |           |           |
-  3   |    K7     |    K8     |    K9     |    K11    |   ← OS SWITCH
-      |           |           |           |  [WIN/MAC]|
-      +-----------+-----------+-----------+-----------+
-      |<--------- 3×3 NUMPAD ----------->|<-- ek -->|
+> Görüntüler örnek atamalarla çekilmiştir; kendi kurulumunuzda tuşlar boş gelir.
 
-  Üst bezelde soldan sağa:  (LED1)   (LED2)   (LED3)
-```
+---
 
-Tuş numaralandırması **sol üstten sağa** okunur: `K1` sol üst, `K9` sağ alt.
-Uygulama arayüzü de tuşları tam olarak bu düzende gösterir.
+## Klavye ve Numpad: iki varyant
 
-**LED anlamları**
-
-| LED | Durum | Renk |
+| | **Klavye (MK1)** | **Numpad** |
 |---|---|---|
-| **LED1** | Windows profili | Mavi `#1E90FF` |
-| | macOS profili | Beyaz `#FFFFFF` |
-| **LED2** | Combo modu açık (K10 basılı) | Turuncu `#FF9500` |
-| | Combo tetiklendi (150 ms flaş) | Yeşil `#2CC985` |
-| **LED3** | Uygulama bağlı | Yeşil `#2CC985` |
-| | Uygulama yok / HID yedek modu | Kırmızı `#E04F5F` |
+| Tuş | 12 — 10 işlev + COMBO + OS | 16 |
+| Enkoder | EC11 (ses) | yok |
+| Durum LED'i | 3 — Windows / macOS / COMBO | 2 — Windows / macOS |
+| Tuşlar ne gönderir | Olayı uygulamaya; uygulama yoksa `F13`–`F22` | Gerçek keypad kodları: `0–9  .  ⏎  +  −  *  /` |
+| Windows ⇄ macOS | OS tuşuna kısa bas | **0'ı basılı tut + Enter** |
+| Firmware | [`firmware/`](firmware/) | [`firmware-numpad/`](firmware-numpad/) |
+
+### Fiziksel yerleşim
+
+Uygulama tuşları cihazdaki düzeniyle aynı biçimde gösterir:
+
+```
+   KLAVYE (MK1)                                      NUMPAD
+   ┌────────┬────────┬────────┬────────┐   ( )       ┌───┬───┬───┬───┐
+   │ Tuş 9  │ Tuş 10 │ COMBO  │   OS   │  enkoder    │ 7 │ 8 │ 9 │ / │
+   ├────────┼────────┼────────┼────────┤             ├───┼───┼───┼───┤
+   │ Tuş 5  │ Tuş 6  │ Tuş 7  │ Tuş 8  │             │ 4 │ 5 │ 6 │ * │
+   ├────────┼────────┼────────┼────────┤             ├───┼───┼───┼───┤
+   │ Tuş 1  │ Tuş 2  │ Tuş 3  │ Tuş 4  │             │ 1 │ 2 │ 3 │ − │
+   └────────┴────────┴────────┴────────┘             ├───┼───┼───┼───┤
+   Üst bezel: LED1 Windows · LED2 macOS · LED3 COMBO  │ 0 │ . │ ⏎ │ + │
+                                                     └───┴───┴───┴───┘
+```
+
+**LED'ler (klavye):** LED1 Windows, LED2 macOS modunda yanar. Aktif modun LED'i
+uygulama bağlıyken sabit, bağlı değilken yavaş yanıp söner. LED3 combo modunda yanar.
 
 ---
 
@@ -94,26 +123,237 @@ Uygulama arayüzü de tuşları tam olarak bu düzende gösterir.
 
 ```
    ┌──────────────────────┐         USB-C          ┌──────────────────────────┐
-   │  ExtraKeyboard MK1   │◄──────────────────────►│      Bilgisayar          │
+   │  ExtraKeyboard MK1   │◄──────────────────────►│        Bilgisayar        │
    │  (ESP32-S3)          │                        │                          │
-   │                      │   HID Keyboard         │  ┌────────────────────┐  │
-   │  11 tuş ──┐          ├───────────────────────►│  │ İşletim sistemi    │  │
-   │  enkoder ─┤ firmware │   HID Consumer         │  │ (F13–F22, ses)     │  │
+   │                      │   HID Klavye           │  ┌────────────────────┐  │
+   │  12 tuş ──┐          ├───────────────────────►│  │ İşletim sistemi    │  │
+   │  enkoder ─┤ firmware │   HID Tüketici (ses)   │  │ (F13–F22, ses)     │  │
    │  3 LED ◄──┘          ├───────────────────────►│  └────────────────────┘  │
    │                      │                        │                          │
-   │                      │   CDC-ACM (seri)       │  ┌────────────────────┐  │
-   │   "EV KEY 3 UP"      ├───────────────────────►│  │ ExtraKeyboard      │  │
-   │   "EV COMBO 2 5"     │                        │  │ uygulaması         │  │
-   │                      │◄───────────────────────┤  │  → config.json     │  │
-   │                      │   "CMD LED 1 1E90FF"   │  │  → eylemi çalıştır │  │
+   │                      │   CDC seri             │  ┌────────────────────┐  │
+   │  "EV KEY 3 DOWN"     ├───────────────────────►│  │ ExtraKeyboard      │  │
+   │  "EV COMBO 2 5"      │                        │  │ uygulaması         │  │
+   │  "HB 120117"         │◄───────────────────────┤  │  → config.json     │  │
+   │                      │   "CMD LED BRIGHT 60"  │  │  → eylemi çalıştır │  │
    └──────────────────────┘                        │  └────────────────────┘  │
                                                    └──────────────────────────┘
 ```
 
-1. Tuşa basılır, cihaz `EV KEY 3 UP` satırını seri porttan gönderir.
-2. Uygulama bu satırı okur, aktif profildeki `K3` slotuna bakar.
-3. Slottaki eylem (uygulama aç / kısayol gönder / metin yaz …) çalıştırılır.
-4. Uygulama kapalıysa cihaz devreye girer ve doğrudan `F15` tuşunu gönderir.
+1. Tuşa basılır; cihaz seri porttan `EV KEY 3 DOWN` satırını gönderir.
+2. Uygulama satırı okur ve etkin profildeki **Tuş 3** slotuna bakar.
+3. Slottaki eylem (uygulama aç / kısayol / metin …) çalıştırılır.
+4. Uygulama kapalıysa cihaz bunu fark eder ve doğrudan `F15` tuşunu gönderir.
+
+Cihaz saniyede bir `HB` (kalp atışı) yollar; uygulama da her saniye `CMD PING`
+gönderir. İki taraf da karşısının yaşadığını böyle anlar.
+
+---
+
+## Kendin yap
+
+> **Adım adım tek dosyalık kılavuz:** [`docs/BASIT-YAPIM.md`](docs/BASIT-YAPIM.md) —
+> 3 katmanlı yapı (plaka / delikli kart / gövde), 3D baskı ölçüleri, kablolama ve
+> montaj sırası. PCB tasarımı gerekmez. Aşağısı özet ve güncel donanıma göre
+> doğrulanmış başvuru bilgisidir.
+
+### 1. Malzeme
+
+| Parça | Klavye | Numpad | Not |
+|---|---|---|---|
+| ESP32-S3-DevKitC-1 | 1 | 1 | **N16R8 önerilir**; 8 MB flash + 2 MB PSRAM'li kart da çalışır |
+| MX uyumlu mekanik anahtar | 12 | 16 | Örn. Cherry MX Blue |
+| 1U tuş başlığı (keycap) | 12 | 16 | |
+| EC11 döner enkoder + knob | 1 | — | Butonlu, M7 burç |
+| Düz LED (3 veya 5 mm) | 3 | 2 | Tek renk, renk serbest |
+| 330 Ω direnç | 3 | 2 | Her LED'e bir tane |
+| 10 kΩ direnç + 100 nF kondansatör | 2 + 2 | — | Enkoder A/B için RC filtresi |
+| 26 AWG çok telli silikon tel | ~2 m | ~2 m | |
+| USB-C **veri** kablosu | 1 | 1 | Şarj kablosu çalışmaz |
+| Gövde | 3D baskı | 3D baskı | PETG önerilir — bkz. [Gövde](#3-gövde) |
+
+Fiyatlı tam liste: [`hardware/BOM.csv`](hardware/BOM.csv) (klavye için zorunlu
+malzeme ≈ 2.400 TL, 2026 tahmini).
+
+### 2. Kablolama
+
+**Kural:** her anahtarın bir bacağı kendi GPIO'suna, diğer bacağı **ortak GND**'ye.
+Matris yok, diyot yok. Firmware pinleri `INPUT_PULLUP` yapar; basılan tuş LOW okunur.
+
+**Klavye** (varsayılan derleme: `[env:quad]` / `[env:n16r8]`):
+
+| Tuş | GPIO | | Tuş | GPIO | | Diğer | GPIO |
+|---|---|---|---|---|---|---|---|
+| Tuş 1 | 4 | | Tuş 6 | 16 | | Enkoder A | 11 |
+| Tuş 2 | 5 | | Tuş 7 | 17 | | Enkoder B | 12 |
+| Tuş 3 | 6 | | Tuş 8 | 18 | | Enkoder buton | 13 |
+| Tuş 4 | 7 | | Tuş 9 | 10 | | LED1 Windows | 14 |
+| Tuş 5 | 15 | | Tuş 10 | 9 | | LED2 macOS | 42 |
+| | | | COMBO | 8 | | LED3 COMBO | 41 |
+| | | | OS | 21 | | | |
+
+**Numpad:**
+
+| GPIO → tuş | | | |
+|---|---|---|---|
+| 11 → `7` | 12 → `8` | 13 → `9` | 14 → `/` |
+| 8 → `4` | 9 → `5` | 10 → `6` | 21 → `*` |
+| 15 → `1` | 16 → `2` | 17 → `3` | 18 → `−` |
+| 4 → `0` | 5 → `.` | 6 → `⏎` | 7 → `+` |
+
+LED'ler: GPIO42 Windows, GPIO41 macOS.
+
+**LED devresi:** `GPIO ── 330 Ω ── LED anot (uzun bacak)`, katot (kısa bacak) → GND.
+
+**Enkoder:** A ve B kanallarının her birine 10 kΩ çekme direnci + GND'ye 100 nF
+(τ = 1 ms donanım debounce). Ortak bacak GND'ye.
+
+> **Bu pinlere bir şey bağlamayın:** 0, 3, 45, 46 (strapping), 19–20 (USB),
+> 26–37 (flash / PSRAM). Kabloyu kart üzerindeki **"USB"** yazan sokete takın,
+> "UART" yazana değil.
+
+> **Üst sıra tuşları karışık mı çıktı?** Kabloyu sökmeyin. Tuşların rolü
+> [`firmware/src/keys.cpp`](firmware/src/keys.cpp) içindeki `KEY_PINS` sırasıyla
+> belirlenir; sırayı değiştirip yeniden yükleyin. Tüm ayrıntı ve birim farkları:
+> [`PIN-HARITASI.md`](PIN-HARITASI.md).
+
+### 3. Gövde
+
+[`mechanical/`](mechanical/) klasöründe OpenSCAD kaynakları var: gövde
+(`case.scad`), üst plaka (`plate.scad`), knob (`knob.scad`), montaj görünümü
+(`assembly.scad`) ve tüm ölçülerin tek yerden değiştiği `parameters.scad`.
+Plakayı lazer/CNC ile kestirmek için `plate.dxf` ve onu üreten `gen_dxf.py`
+da burada. Baskı ve montaj notları: [`mechanical/OKU-ONCE.md`](mechanical/OKU-ONCE.md),
+[`docs/02-MEKANIK-TASARIM.md`](docs/02-MEKANIK-TASARIM.md).
+
+### 4. Firmware
+
+Gerekenler: [PlatformIO](https://platformio.org/) ve `esptool`
+(`pip install esptool` ya da PlatformIO'nun içindeki).
+
+**4.1 Kartını tanı.** ESP32-S3 modülleri aynı görünse de bellek tipleri farklı
+olabilir ve **yanlış ayar kartı hiç açılmaz hâle getirir.** BOOT'u basılı tutup
+RST'ye basıp bırak, BOOT'u bırak (indirme modu), sonra:
+
+```bash
+esptool.py --chip esp32s3 flash_id
+```
+
+| Çıktıda | Ortam |
+|---|---|
+| `Embedded PSRAM 2MB` + `Detected flash size: 8MB` | `quad` |
+| `Embedded PSRAM 8MB` + `Detected flash size: 16MB` (N16R8) | `n16r8` |
+
+**4.2 Derle.**
+
+```bash
+cd firmware && pio run -e quad          # ya da: -e n16r8
+cd firmware-numpad && pio run           # numpad (8 MB flash + 2 MB PSRAM)
+```
+
+**4.3 İlk yükleme.** Kart indirme modundayken (4.1'deki gibi):
+
+```bash
+cd firmware
+esptool.py --chip esp32s3 --port <PORT> --baud 460800 \
+  --before no_reset --after hard_reset write_flash \
+  --flash_mode dio --flash_freq 40m --flash_size 8MB \
+  0x0     .pio/build/quad/bootloader.bin \
+  0x8000  .pio/build/quad/partitions.bin \
+  0xe000  ~/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin \
+  0x10000 .pio/build/quad/firmware.bin
+```
+
+`n16r8` için `--flash_size 16MB` ve `.pio/build/n16r8/` kullanın. `<PORT>`, macOS'ta
+`/dev/cu.usbmodem…`, Windows'ta `COM…` olur. Yazma bitince kart açılmazsa RST'ye
+bir kez basın ya da kabloyu çıkarıp takın.
+
+> **⚠️ `pio run -t upload` kullanmayın.** PlatformIO imajı QIO / 80 MHz yazar; bu
+> kartlarda kullanılan bazı flash çipleri (Boya) bu ayarla okunamaz ve kart **boot
+> döngüsüne** girer (seri çıktıda `ets_loader.c 78`). `--flash_mode dio
+> --flash_freq 40m` her çipte güvenlidir.
+
+**4.4 Sonraki güncellemeler — kutuyu açmadan.** Bu firmware'de kart, uygulama
+portundan gelen `CMD BOOTLOADER CONFIRM` komutuyla kendini indirme moduna alır.
+[`tools/yukle-kutusuz.py`](tools/yukle-kutusuz.py) tüm zinciri tek komutta yürütür:
+kartı USB seri numarasından tanır → kendi ortamını derler → indirme moduna alır →
+DIO / 40 MHz ile yazar → indirme bayrağını temizleyip resetler → kalp atışını
+doğrular. Kendi kartınızı önce dosyadaki `BIRIMLER` tablosuna ekleyin; tanımadığı
+kartı bilerek reddeder.
+
+```bash
+python tools/yukle-kutusuz.py
+```
+
+### 5. Test
+
+Uygulamayı açın → **LED & Cihaz** sekmesi → **Canlı Olay Logu**. Her tuşa basın:
+doğru `EV KEY n` satırının geldiğini görün. Enkoderi çevirin, COMBO ve OS'a basın.
+**LED1 / LED2 / LED3 Test** düğmeleriyle LED'leri sınayın.
+
+---
+
+## Masaüstü uygulaması
+
+### macOS — hazır uygulama
+
+1. [Sürümler](https://github.com/MusaCanBacak/ExtraKeyboard-MK1/releases) sayfasından
+   `ExtraKeyboard-MK1-KURULUM.zip` dosyasını indirin.
+2. `1-BILGISAYAR-UYGULAMASI/macOS/Kur-macOS.command` dosyasına çift tıklayın;
+   uygulamayı **Uygulamalar** klasörüne kopyalar ve açar.
+3. **Sistem Ayarları → Gizlilik ve Güvenlik** altında **Erişilebilirlik** ve
+   **Girdi İzleme** izinlerini verin, sonra uygulamayı **kapatıp yeniden açın.**
+   İzin verilmezse kısayol ve metin eylemleri sessizce hiçbir şey yapmaz.
+
+> Paketteki `2-FIRMWARE` ve `3-DONANIM` klasörleri eskidir. Firmware'i ve donanım
+> belgelerini bu depodan alın.
+
+### Kaynaktan (macOS / Windows)
+
+Python **3.10 veya üstü**, **Tk 8.6** ile birlikte gerekir.
+
+```bash
+git clone https://github.com/MusaCanBacak/ExtraKeyboard-MK1.git
+cd ExtraKeyboard-MK1
+python3 -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+python run_app.py
+```
+
+> **macOS:** Sistemle gelen Python 3.9, eski Tk 8.5 ile gelir ve uygulama **boş
+> beyaz pencere** açar. [python.org](https://www.python.org/downloads/) Python'unu
+> kullanın. **Windows:** Kurulum paketindeki `Windows/Baslat.bat` aynı adımları
+> kendisi yapar.
+
+### Kullanım
+
+- **Tuş atamak:** Tuşlar sekmesinde bir tuşa tıklayın → eylem tipini ve değeri seçin
+  → **Kaydet**. Sürükle-bırak ile uygulama veya dosya da atanabilir.
+- **Combo:** COMBO'ya bir kez basın (LED3 yanar), sonra iki işlev tuşuna dokunun.
+  Mod açık kalır; kapatmak için COMBO'ya tekrar basın. Uygulama bağlı değilken
+  10 sn işlem yapılmazsa kendiliğinden kapanır.
+- **OS tuşu:** kısa basış Windows ⇄ macOS; **3 sn basılı** tutmak HID yedek modunu
+  açar/kapatır.
+- **Enkoder:** `HID` modunda sesi doğrudan cihaz ayarlar; `HOST` modunda çevirme,
+  basma ve uzun basma uygulamada ayrı eylemler çalıştırır.
+
+---
+
+## Sorun giderme
+
+| Belirti | Neden / çözüm |
+|---|---|
+| Bağlantı kopup geliyor | Uygulamanın olay günlüğüne bakın: macOS'ta `~/Library/Logs/ExtraKeyboard.log` (Windows: `%LOCALAPPDATA%\ExtraKeyboard\`). Kart her resetten sonra nedenini oraya yazar (`DBG BOOT reset=…`). Aynı USB hub'ında **sürekli resetlenen başka bir cihaz** varsa ayrı bir porta takın. |
+| Uygulama bağlanamıyor | Portu başka bir program tutuyor olabilir (Arduino / PlatformIO seri monitörü). Seri port aynı anda tek programa açılır. |
+| Kart hiç açılmıyor, yalnızca `USB JTAG/serial debug unit` görünüyor | Yanlış ortam ya da QIO yazımı. 4.1'deki gibi kartı tanıyıp DIO / 40 MHz ile yeniden yazın. |
+| Seri port var ama klavye olarak görünmüyor | `ARDUINO_USB_MODE=0` bayrağı eksik ya da kablo "UART" soketinde. |
+| Üst sıradaki tuşlar yer değiştirmiş | `keys.cpp` → `KEY_PINS` sırası ([PIN-HARITASI.md](PIN-HARITASI.md)). |
+| macOS'ta kısayollar çalışmıyor | Erişilebilirlik + Girdi İzleme izni verip uygulamayı yeniden açın. |
+| Uygulama boş beyaz pencere açıyor | Tk 8.5'li Python (macOS sistem Python'u). python.org Python'u kullanın. |
+| Türkçe karakterler yazılmıyor | `metin` eylemi ASCII dışı karakterleri pano üzerinden yapıştırır; hedef uygulama yapıştırmayı desteklemiyor olabilir. |
+
+Daha fazlası: [`docs/08-SORUN-GIDERME.md`](docs/08-SORUN-GIDERME.md) ve
+[`docs/06-ONEMLI-NOTLAR.md`](docs/06-ONEMLI-NOTLAR.md).
 
 ---
 
@@ -121,282 +361,103 @@ Uygulama arayüzü de tuşları tam olarak bu düzende gösterir.
 
 | Konu | Değer |
 |---|---|
-| MCU | ESP32-S3-WROOM-1 (N16R8), ESP32-S3-DevKitC-1 kartı |
-| Bağlantı | USB-C, **HID Keyboard + HID Consumer Control + CDC-ACM** composite |
-| USB kimliği | VID `0x303A` · PID `0x82E1` · `BlueDevelopment` / `ExtraKeyboard MK1` |
-| Protokol | Satır tabanlı ASCII, `\n` sonlu, 115200 (CDC'de hız önemsiz) |
-| Tuş sayısı | 11 (9 işlev + combo + OS), matris **yok**, diyot **yok** |
-| Kombinasyon | C(9,2) = **36** |
-| Enkoder | EC11, RC donanım debounce + 4 adımlı durum tablosu |
-| LED | 3 × WS2812B, varsayılan parlaklık 60/255 |
-| Debounce | Tuşlar 5 ms yazılım; enkoder 10 kΩ + 100 nF (τ = 1 ms) |
-| Güç | USB 5 V, toplam çekim < 150 mA |
-| Gövde | 88.20 × 69.15 × 22.00 mm, plaka 1.50 mm, tuş adımı 19.05 mm |
-| Firmware | Arduino / PlatformIO, `ARDUINO_USB_MODE=0` (TinyUSB) |
-| Uygulama | Python 3.10+, CustomTkinter, pyserial, pyautogui, pystray |
-| Yapılandırma | `config.json`, şema sürümü **3**, atomik yazma |
-
----
-
-## Hızlı başlangıç
-
-> ### 🔧 Cihazı yapacaksan buradan başla → **[docs/BASIT-YAPIM.md](docs/BASIT-YAPIM.md)**
->
-> Tek dosyada tüm yapım yolu: 3 katmanlı yapı (plaka / delikli kart / gövde),
-> 3D baskı için hazır delik koordinatları, dikey katman yığını, kablolama ve
-> montaj sırası. PCB tasarımı yok, karmaşık CAD yok.
->
-> Aşağıdaki bölümler ve `docs/01`–`docs/08` daha derin referanstır.
-
-### 1. Donanım
-
-Anahtarları, enkoderi ve LED'leri şu pinlere bağlayın. **Tüm anahtarlar
-aktif-LOW**: bir bacak GPIO'ya, diğer bacak GND'ye.
-
-| İşlev | GPIO | | İşlev | GPIO |
-|---|---|---|---|---|
-| K1 | 4 | | K9 | 8 |
-| K2 | 5 | | K10 (COMBO) | 9 |
-| K3 | 6 | | K11 (OS) | 10 |
-| K4 | 7 | | ENC_A | 11 |
-| K5 | 15 | | ENC_B | 12 |
-| K6 | 16 | | ENC_SW | 13 |
-| K7 | 17 | | LED_DATA | 14 (330 Ω üzerinden) |
-| K8 | 18 | | | |
-
-Üç zorunlu ek bileşen: LED besleme hattına **1N4148 diyot**, LED uçlarına
-**1000 µF** kondansatör, enkoderin A ve B kanallarına **10 kΩ + 100 nF** RC filtresi.
-Gerekçeleri ve hesapları için → [`docs/06-ONEMLI-NOTLAR.md`](docs/06-ONEMLI-NOTLAR.md)
-maddeler 7, 8, 12.
-
-> **GPIO 0, 3, 19, 20, 26–37, 43–46 kullanılmaz.** Gerekçeler için
-> [`docs/00-CEKIRDEK-SPEC.md`](docs/00-CEKIRDEK-SPEC.md) bölüm 3.2.
-
-### 2. Firmware
-
-```bash
-cd firmware
-pio run --target upload
-```
-
-`platformio.ini` içinde şu iki bayrak **zorunludur**; olmadan cihaz HID
-klavye olarak hiç görünmez:
-
-```ini
-build_flags =
-    -D ARDUINO_USB_MODE=0
-    -D ARDUINO_USB_CDC_ON_BOOT=1
-```
-
-Kabloyu DevKit üzerindeki **"USB"** yazan sokete takın (**"UART"** yazana değil).
-
-### 3. Uygulama
-
-```bash
-python -m venv .venv
-source .venv/bin/activate          # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-python run_app.py
-```
-
-macOS'ta ilk çalıştırmada **Sistem Ayarları → Gizlilik ve Güvenlik →
-Erişilebilirlik** ve **Girdi İzleme** izinlerini verin, ardından uygulamayı
-**kapatıp yeniden açın**. Bu adım atlanırsa kısayol ve metin eylemleri sessizce
-hiçbir şey yapmaz.
+| MCU | ESP32-S3-DevKitC-1 (N16R8 ya da 8 MB flash + 2 MB Quad PSRAM) |
+| USB | HID Klavye + HID Tüketici + CDC seri, tek kablo (TinyUSB, `ARDUINO_USB_MODE=0`). Görünen ürün `ExtraKeyboard MK1`, üretici `BlueDevelopment` |
+| Protokol | Satır tabanlı ASCII. Cihaz → PC: `EV KEY / EV COMBO / EV OS / EV ENC / HB / ID / ACK`. PC → cihaz: `CMD ID / PING / OS / LED / ENC MODE / HIDFB / SAVE / BOOTLOADER CONFIRM`. Ayrıntı: [`docs/03-PROTOKOL.md`](docs/03-PROTOKOL.md) |
+| Tuş okuma | Matris yok, diyot yok, `INPUT_PULLUP`; yazılım debounce 8 ms |
+| Enkoder | EC11, RC donanım debounce (10 kΩ + 100 nF) + durum tablosu |
+| Güvenilirlik | DTR/RTS ile istemsiz bootloader'a düşme kapalı; döngü bekçisi 10 sn; USB gönderim tıkanma bekçisi 5 sn; uygulamada otomatik yeniden bağlanma |
+| Uygulama | Python 3.10+ (Tk 8.6), CustomTkinter, pyserial, pyautogui, pystray, Pillow, pyperclip, tkinterdnd2, qrcode |
+| Ayar dosyası | `config.json`, şema 3, atomik yazma. macOS: `~/Library/Application Support/ExtraKeyboard/` |
 
 ---
 
 ## Dosya düzeni
 
 ```
-ExtraKeyboard/
-├── README.md                    # bu dosya
-├── run_app.py                   # v3 giriş noktası
-├── config.json                  # v3 yapılandırma (ilk çalıştırmada üretilir)
-├── Main.py                      # ESKİ v2 — dokunulmadı, referans olarak duruyor
-├── macro_config.json            # ESKİ v2 yapılandırma — otomatik migrate edilir
+ExtraKeyboard-MK1/
+├── README.md                 # bu dosya
+├── PIN-HARITASI.md           # güncel pin haritası (klavye + numpad) — donanımdan doğrulandı
+├── run_app.py                # uygulamayı kaynaktan başlatır
+├── requirements.txt
+├── ExtraKeyboard-*.command   # macOS başlatma / kurulum betikleri
+├── Kaldir-*.bat|command      # kaldırma betikleri
 │
-├── docs/                        # dokümantasyon (00–08)
-│   ├── 00-CEKIRDEK-SPEC.md      # TEK DOĞRULUK KAYNAĞI
-│   ├── 01-DONANIM.md
-│   ├── 02-MEKANIK.md
-│   ├── 03-FIRMWARE.md
-│   ├── 04-PC-UYGULAMASI.md
-│   ├── 05-MONTAJ.md
-│   ├── 06-ONEMLI-NOTLAR.md      # incelikler ve tuzaklar (70 madde)
-│   ├── 07-SORUN-GIDERME.md
-│   ├── 08-YOL-HARITASI.md
-│   └── INDEX.md                 # doküman haritası
+├── app/                      # masaüstü uygulaması
+│   ├── main.py               # tek örnek kontrolü, tepsi simgesi, başlatma
+│   ├── core/                 # config, cihaz bağlantısı (device.py), eylemler, telefon sunucusu
+│   └── ui/                   # ana pencere, tuş ızgarası, combo matrisi, eylem düzenleyici
 │
-├── firmware/
-│   ├── platformio.ini
-│   └── src/                     # main.cpp, keys, encoder, leds, protocol, storage
+├── firmware/                 # klavye firmware'i (PlatformIO: quad / n16r8 / e74610)
+├── firmware-numpad/          # numpad firmware'i
 │
-├── hardware/                    # şematik, BOM, kablolama tablosu
-├── mechanical/                  # OpenSCAD kaynakları + DXF üretici
-│
-├── app/
-│   ├── main.py                  # tekil örnek kontrolü + kurulum
-│   ├── core/
-│   │   ├── config.py            # ConfigManager, slot isimleri, şema
-│   │   ├── device.py            # DeviceLink — seri thread, otomatik bağlanma
-│   │   └── actions.py           # ActionRunner — 10 eylem tipi
-│   └── ui/
-│       ├── main_window.py       # sekmeler: Tuşlar / Combolar / Enkoder / LED / Ayarlar
-│       ├── key_grid.py          # 4×3 fiziksel yerleşim
-│       ├── combo_matrix.py      # 9×9 üst üçgen (36 hücre)
-│       ├── action_editor.py     # tip + değer + gözat diyaloğu
-│       └── tray.py              # sistem tepsisi simgesi
-│
-└── tools/
-    └── migrate_v2_config.py     # macro_config.json → config.json
+├── hardware/                 # BOM, şematik, kablolama tablosu
+├── mechanical/               # OpenSCAD gövde/plaka/knob + DXF üretici
+├── docs/                     # ayrıntılı belgeler + ekran görüntüleri
+├── tools/                    # kutusuz yükleme, .app paketleme (PyInstaller), öz kontrol
+├── varliklar/                # uygulama simgesi
+└── dagitim/                  # kurulum paketi iskeleti (zip'ler Sürümler sayfasında)
 ```
 
+`Main.py` ve `macro_config.json`, eski v2 sürümünden kalmadır; v2 ayarları ilk
+çalıştırmada otomatik olarak taşınır.
+
 ---
 
-## Dokümantasyon haritası
+## Belgeler
 
-Hepsi `docs/` altındadır. Ayrıntılı yönlendirme için
-[`docs/INDEX.md`](docs/INDEX.md) dosyasına bakın.
-
-| Doküman | İçerik |
+| Belge | İçerik |
 |---|---|
-| [`00-CEKIRDEK-SPEC.md`](docs/00-CEKIRDEK-SPEC.md) | **Tek doğruluk kaynağı.** Pin şeması, protokol, JSON şeması, ölçüler, modül API'leri. Bir çelişki görürsen bu dosya kazanır. |
-| [`01-DONANIM.md`](docs/01-DONANIM.md) | Elektronik şema, malzeme listesi (BOM), kablolama tablosu, LED ve enkoder devreleri. |
-| [`02-MEKANIK.md`](docs/02-MEKANIK.md) | Kasa ve plaka ölçüleri, OpenSCAD parametreleri, DXF üretimi, 3D baskı ayarları. |
-| [`03-FIRMWARE.md`](docs/03-FIRMWARE.md) | ESP32-S3 firmware mimarisi, durum makineleri, protokol gerçeklemesi, derleme ve yükleme. |
-| [`04-PC-UYGULAMASI.md`](docs/04-PC-UYGULAMASI.md) | Python uygulamasının modül yapısı, `core/` ve `ui/` sözleşmeleri, eylem tipleri, tema. |
-| [`05-MONTAJ.md`](docs/05-MONTAJ.md) | Adım adım montaj: lehimleme sırası, ölçüm kontrolleri, ilk çalıştırma, izinler. |
-| [`06-ONEMLI-NOTLAR.md`](docs/06-ONEMLI-NOTLAR.md) | **70 maddelik incelik listesi.** Her madde: risk, neden, çözüm, belirti. Bir şey çalışmıyorsa önce buraya bak. |
-| [`07-SORUN-GIDERME.md`](docs/07-SORUN-GIDERME.md) | Belirtiden teşhise giden akış: cihaz görünmüyor, LED yanmıyor, eylem çalışmıyor… |
-| [`08-YOL-HARITASI.md`](docs/08-YOL-HARITASI.md) | Sürüm geçmişi, planlanan özellikler, bilinen sınırlamalar. |
+| [`docs/BASIT-YAPIM.md`](docs/BASIT-YAPIM.md) | **Buradan başla.** Tek dosyada yapım: katmanlar, ölçüler, kablolama, montaj sırası. |
+| [`PIN-HARITASI.md`](PIN-HARITASI.md) | Güncel pin haritası, birim farkları, bellek/flash ayarı. |
+| [`docs/00-CEKIRDEK-SPEC.md`](docs/00-CEKIRDEK-SPEC.md) | Çekirdek şartname: pinler, protokol, JSON şeması, ölçüler. |
+| [`docs/01-DONANIM-PIN-SEMASI.md`](docs/01-DONANIM-PIN-SEMASI.md) | Elektronik şema ve pin seçimlerinin gerekçeleri. |
+| [`docs/02-MEKANIK-TASARIM.md`](docs/02-MEKANIK-TASARIM.md) | Gövde ve plaka ölçüleri, OpenSCAD parametreleri, baskı ayarları. |
+| [`docs/03-PROTOKOL.md`](docs/03-PROTOKOL.md) | Cihaz ⇄ uygulama protokolü, satır satır. |
+| [`docs/04-FIRMWARE-KURULUM.md`](docs/04-FIRMWARE-KURULUM.md) | Firmware geliştirme ortamı ve derleme. |
+| [`docs/05-UYGULAMA-KULLANIMI.md`](docs/05-UYGULAMA-KULLANIMI.md) | Uygulamanın tüm ekranları ve eylem tipleri. |
+| [`docs/06-ONEMLI-NOTLAR.md`](docs/06-ONEMLI-NOTLAR.md) | İncelikler ve tuzaklar: risk, neden, çözüm, belirti. |
+| [`docs/07-MONTAJ-KILAVUZU.md`](docs/07-MONTAJ-KILAVUZU.md) | Adım adım montaj ve ölçüm kontrolleri. |
+| [`docs/08-SORUN-GIDERME.md`](docs/08-SORUN-GIDERME.md) | Belirtiden teşhise sorun giderme akışı. |
+| [`docs/09-GENISLETME.md`](docs/09-GENISLETME.md) | Tuş eklemek ve projeyi genişletmek. |
 
----
-
-## Gereksinimler
-
-### Donanım
-
-| Parça | Adet | Not |
-|---|---|---|
-| ESP32-S3-DevKitC-1 (N16R8) | 1 | Yerleşik USB OTG şart |
-| MX uyumlu mekanik anahtar | 11 | Herhangi bir ağırlık |
-| Keycap (1u) | 11 | Düşük profil önerilir (XDA / DSA / Cherry) |
-| EC11 döner enkoder (butonlu) | 1 | M7 × 0.75 dişli burç |
-| Enkoder knob | 1 | **En fazla 20 mm çap** |
-| WS2812B LED modülü | 3 | 5 V, tekil modül |
-| 1N4148 diyot | 1 | LED besleme hattında |
-| 1000 µF / 10 V elektrolitik kondansatör | 1 | LED uçlarında |
-| 330 Ω direnç | 1 | LED veri hattında |
-| 10 kΩ direnç | 2 | Enkoder RC filtresi |
-| 100 nF kondansatör | 2 | Enkoder RC filtresi |
-| ~~Vida / insert~~ | 0 | Gövde **geçmeli** (snap-fit), donanım gerekmez |
-| Silikon ayak | 4 | ⌀8 mm (taban çukuru `foot_d = 8.00`) |
-| 26 AWG çok telli silikon tel | 7 renk × 2 m | Net tüketim ≈ 1.90 m |
-| USB-C **veri** kablosu | 1 | Şarj kablosu iş görmez |
-
-### Yazılım
-
-- **Firmware:** PlatformIO (veya Arduino IDE 2.x) + `espressif32` platformu,
-  `Adafruit NeoPixel` (ya da `FastLED`), `Adafruit TinyUSB`.
-- **Uygulama:** Python **3.10+**, `customtkinter`, `pyserial`, `pyautogui`,
-  `pyperclip`, `pystray`, `Pillow`.
-- **İşletim sistemi:** Windows 10/11 veya macOS 12+.
-
----
-
-## Sık sorulanlar
-
-**Uygulamayı kurmadan da çalışır mı?**
-Kısmen. Uygulama kapalıyken cihaz HID yedek moduna geçer: K1–K9 sırasıyla
-`F13`–`F21`, K11 `F22` gönderir ve enkoder sesi doğrudan kontrol eder.
-**Combo bu modda devre dışıdır** ve LED3 kırmızı yanıp söner.
-
-**Combo nasıl yapılır?**
-`K10`'a **bir kez basın** (basılı tutmak gerekmez — LED2 turuncu yanıp mod kilitlenir), ardından K1–K9 arasından iki tuşa dokunun; combo tetiklenir ve mod kendiliğinden kapanır. Vazgeçerseniz K10'a tekrar basın; 10 sn işlem yapılmazsa mod kendiliğinden kapanır. Sıra önemsizdir.
-`K10` basılıyken tuşların normal eylemleri **çalışmaz**.
-
-**Neden 36 combo?**
-9 tuştan sırasız 2 tanesini seçmek: C(9,2) = (9 × 8) / 2 = 36.
-
-**Windows ve macOS ayarları neden ayrı?**
-Uygulama yolları (`C:\...\chrome.exe` ⇄ `/Applications/Chrome.app`) ve kısayollar
-(`ctrl+c` ⇄ `command+c`) iki sistemde farklıdır. `K11` tuşuyla profil anında
-değişir, LED1 rengi hangisinde olduğunuzu gösterir.
-
-**macOS'ta kısayollar çalışmıyor.**
-Erişilebilirlik ve Girdi İzleme izinlerini verip uygulamayı **kapatıp yeniden
-açın**. İzin, çalışan bir sürece geriye dönük uygulanmaz.
-→ [`06-ONEMLI-NOTLAR.md`](docs/06-ONEMLI-NOTLAR.md) madde 35–36.
-
-**Cihaz seri port olarak görünüyor ama klavye olarak görünmüyor.**
-`ARDUINO_USB_MODE=0` bayrağı eksik ya da kablo DevKit'in "UART" soketinde.
-→ [`06-ONEMLI-NOTLAR.md`](docs/06-ONEMLI-NOTLAR.md) madde 1–2.
-
-**Uygulama cihaza bağlanamıyor.**
-Arduino IDE Seri Monitörü veya PlatformIO monitörü açık olabilir; seri port aynı
-anda tek uygulama tarafından açılabilir. → madde 42.
-
-**Türkçe karakterler yazılmıyor.**
-`text` eylemi ASCII dışı karakterleri pano üzerinden yapıştırır. Hedef uygulama
-yapıştırmayı desteklemiyorsa çalışmayabilir. → madde 37.
-
-**Enkoder ters yönde çalışıyor.**
-A ve B tellerini (GPIO11 ⇄ GPIO12) yer değiştirin ya da firmware'deki
-`ENC_REVERSED` sabitini değiştirin. → madde 14.
-
-**Ses bir tıkta iki kademe değişiyor.**
-Hem cihaz HID gönderiyor hem uygulama medya eylemi çalıştırıyor. Enkoder modu
-`hid` iken uygulama eylem çalıştırmamalıdır. → madde 60.
-
-**v2 ayarlarım ne olacak?**
-`macro_config.json` ilk çalıştırmada otomatik olarak `config.json`'a taşınır
-(`tools/migrate_v2_config.py`). Eski dosyaya dokunulmaz.
-
-**Kasa 3D yazıcı olmadan yapılabilir mi?**
-Plakayı 1.5 mm alüminyum, pirinç veya FR4'ten lazer/CNC kestirebilirsiniz;
-`mechanical/` altındaki DXF üretici bunun için vardır. Gövde için hazır bir
-proje kutusu da kullanılabilir.
+> Bazı derin başvuru belgeleri tasarımın önceki aşamalarında yazıldı (11 tuş,
+> WS2812B LED). Bu README ve `PIN-HARITASI.md` ile çeliştikleri yerde **güncel
+> donanımı bu ikisi anlatır.**
 
 ---
 
 ## Sürüm notları
 
-### v3.0.0 — bu sürüm
+### 2026-09 — bağlantı güvenilirliği
 
-Sıfırdan yeniden tasarlandı. v2'den taşınan tek şey `macro_config.json` içindeki
-kullanıcı ayarlarıdır.
+Uzun süren "bağlandı / koptu" sorunu kart ve uygulama tarafında kökünden çözüldü:
 
-| Konu | v2 | **v3** |
-|---|---|---|
-| Tuş sayısı | 8 | **11** (9 işlev + combo + OS) |
-| Kombinasyon | C(8,2) = 28 | **C(9,2) = 36** |
-| Durum LED'i | yok | **3 × WS2812B** (OS / combo / bağlantı) |
-| Enkoder | yok | **EC11** (çevir / bas / uzun bas) |
-| Cihaz → PC yolu | Global klavye dinleyicisi; cihaz `Ctrl+Shift+Alt+F13..F20` gönderirdi | **Gerçek CDC seri protokol** (`EV KEY 3 UP`, `EV COMBO 2 5`) |
-| PC → cihaz yolu | yok | **Komutlar** (`CMD LED`, `CMD OS`, `CMD ENC MODE`, `CMD SAVE`) |
-| Profiller | Tek liste, OS ayrımı sadece kısayolda | **Ayrı `windows` / `mac` profilleri**, çoklu profil desteği |
-| Eylem tipleri | 4 (`none`, `app`, `url`, `shortcut`) | **10** (+ `text`, `command`, `file`, `folder`, `media`, `macro`) |
-| Yapılandırma | `macro_config.json`, şemasız | `config.json`, **şema 3**, atomik yazma, migrate desteği |
-| Uygulama kapalıyken | Hiçbir şey çalışmaz | **HID yedek modu** (F13–F22 + ses) |
-| Mimari | Tek dosya (`Main.py`, ~1000 satır) | `app/core` + `app/ui` ayrımı, sözleşmeli modül API'si |
+- **Firmware:** USB seri hatlarının (DTR/RTS) kartı istemeden bootloader'a atması
+  kapatıldı; kalıcı USB gönderim tıkanması giderildi; iki işaretsiz tamsayı taşması
+  düzeltildi (biri kartın ~10 sn'de bir "uygulama koptu" sanmasına, diğeri gereksiz
+  resetlere yol açıyordu); döngü ve gönderim bekçileri eklendi; kutuyu açmadan
+  güncelleme için `CMD BOOTLOADER CONFIRM`.
+- **Uygulama:** gönderim sırasında okuyucunun donması, kart resetlenince ölü
+  bağlantıda kalma ve ROM indirme portuna bağlanma hataları giderildi; otomatik
+  yeniden bağlanma, 3 sn'de hızlı toparlanma ve kalıcı olay günlüğü eklendi.
+- **Yapım:** modül bellek tipine göre derleme ortamları (`quad`, `n16r8`) ve
+  DIO / 40 MHz yazma kuralı.
 
-**Neden `Ctrl+Shift+Alt+F13` hilesi bırakıldı?**
-v2'de cihaz, normal bir klavye gibi F13–F20 gönderiyordu; uygulama da global bir
-klavye dinleyicisiyle bunları yakalıyordu. Bu yaklaşımın üç sorunu vardı:
-(1) tuş kombinasyonu her uygulamaya sızıyordu, (2) global dinleyici işletim
-sisteminden özel izin gerektiriyordu ve bazı pencerelerde hiç çalışmıyordu,
-(3) cihazdan bilgisayara **veri** göndermek (combo durumu, enkoder yönü) mümkün
-değildi. v3'te ayrı bir CDC seri kanalı kullanılır: veri girdi akışına hiç
-karışmaz, iki yönlüdür ve genişletilebilir.
+### v3.0.0
+
+Sıfırdan yeniden tasarım. v2'de cihaz sıradan bir klavye gibi `Ctrl+Shift+Alt+F13`
+gönderiyor, uygulama da bunu global bir klavye dinleyicisiyle yakalıyordu. Bu yöntem
+tuşları her uygulamaya sızdırıyor, özel izin istiyor ve cihazdan bilgisayara veri
+taşıyamıyordu. v3'te ayrı bir **CDC seri kanalı** kullanılır: girdi akışına karışmaz,
+iki yönlüdür ve genişletilebilir. v2'nin `macro_config.json` ayarları otomatik taşınır.
 
 ### Bilinen sınırlamalar
 
 - Combo, HID yedek modunda (uygulama kapalıyken) çalışmaz.
-- Windows'ta yönetici yetkili pencerelere kısayol gönderilemez (UIPI).
-- macOS'ta `media` eylemlerinin oynat/duraklat kısmı uygulamaya bağımlıdır.
-- BLE desteği yoktur; bu bilinçli bir tasarım kararıdır
-  (→ [`06-ONEMLI-NOTLAR.md`](docs/06-ONEMLI-NOTLAR.md) madde 63).
+- Windows'ta yönetici yetkisiyle çalışan pencerelere kısayol gönderilemez (UIPI).
+- macOS'ta `medya` eylemlerinin oynat/duraklat kısmı çalan uygulamaya bağlıdır.
+- Bluetooth yoktur; bu bilinçli bir tasarım kararıdır.
 
 ---
 
@@ -406,10 +467,9 @@ Bu depoda ayrı bir lisans dosyası bulunmamaktadır; tüm hakları saklıdır.
 Kişisel ve eğitim amaçlı kullanım, çoğaltma ve değiştirme serbesttir.
 Ticari kullanım için **BlueDevelopment** ile iletişime geçin.
 
-Üçüncü taraf bileşenler kendi lisanslarına tabidir (Arduino-ESP32, Adafruit
-TinyUSB, Adafruit NeoPixel / FastLED, CustomTkinter, pyserial, pyautogui,
-pystray, Pillow).
+Üçüncü taraf bileşenler kendi lisanslarına tabidir (Arduino-ESP32, TinyUSB,
+CustomTkinter, pyserial, pyautogui, pystray, Pillow, pyperclip, tkinterdnd2, qrcode).
 
 ---
 
-<sub>ExtraKeyboard MK1 · Firmware 3.0.0 · Uygulama 3.0.0 · Donanım MK1 · BlueDevelopment</sub>
+<sub>ExtraKeyboard MK1 · Firmware 3.0.0 · Uygulama 3.0.0 · BlueDevelopment</sub>

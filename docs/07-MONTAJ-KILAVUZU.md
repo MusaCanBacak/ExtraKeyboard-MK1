@@ -706,7 +706,7 @@ USB'yi tak (Adım 12'den sonra), multimetre **DC gerilim** modunda:
 
 ```bash
 # Proje kökünde
-cd /Users/musacanbacak/PycharmProjects/ExtraKeyboard/firmware
+cd ~/ExtraKeyboard-MK1/firmware
 
 # Derle
 pio run

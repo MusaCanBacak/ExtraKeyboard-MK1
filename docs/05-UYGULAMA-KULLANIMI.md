@@ -58,7 +58,7 @@ python --version       # Windows
 
 ```bash
 # 1) Proje klasörüne gir
-cd ~/PycharmProjects/ExtraKeyboard
+cd ~/ExtraKeyboard-MK1
 
 # 2) Sanal ortam oluştur
 python3 -m venv .venv
@@ -93,7 +93,7 @@ PowerShell'i **normal kullanıcı** olarak aç (yönetici gerekmez):
 
 ```powershell
 # 1) Proje klasörüne gir
-cd $env:USERPROFILE\PycharmProjects\ExtraKeyboard
+cd $env:USERPROFILE\ExtraKeyboard-MK1
 
 # 2) Sanal ortam oluştur
 python -m venv .venv
@@ -134,7 +134,7 @@ Alternatif olarak klasik komut istemi (`cmd.exe`) kullanıp
 
 ```bash
 #!/bin/bash
-cd "$HOME/PycharmProjects/ExtraKeyboard"
+cd "$HOME/ExtraKeyboard-MK1"
 source .venv/bin/activate
 python run_app.py
 ```
@@ -145,7 +145,7 @@ Sonra `chmod +x ~/ExtraKeyboard.command`. Çift tıklayarak açabilirsin.
 
 ```bat
 @echo off
-cd /d "%USERPROFILE%\PycharmProjects\ExtraKeyboard"
+cd /d "%USERPROFILE%\ExtraKeyboard-MK1"
 call .venv\Scripts\activate.bat
 pythonw run_app.py
 ```
@@ -560,7 +560,7 @@ Tuşlar `+` ile birleştirilir, küçük harf yazılır, boşluk bırakılmaz.
 | | Değer örneği |
 |---|---|
 | **Windows** | `merhaba dünya` |
-| **Windows (2)** | `musa.canbacak@ornek.com` |
+| **Windows (2)** | `kullanici@ornek.com` |
 | **macOS** | `merhaba dünya` |
 | **macOS (2)** | `Saygılarımla,\nMusa` |
 
@@ -910,7 +910,7 @@ Tüm profil işlemleri **Ayarlar** sekmesindeki **Profiller** bölümündedir.
 
 ```bash
 # macOS
-cp ~/PycharmProjects/ExtraKeyboard/config.json ~/Belgeler/config-yedek-$(date +%F).json
+cp ~/ExtraKeyboard-MK1/config.json ~/Belgeler/config-yedek-$(date +%F).json
 ```
 
 ```powershell

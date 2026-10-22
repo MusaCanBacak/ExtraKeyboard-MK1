@@ -986,13 +986,13 @@ Tipik çıktı: `/dev/cu.usbmodem101`
 **Her iki platformda (venv'deki pyserial ile)**
 
 ```bash
-/Users/musacanbacak/PycharmProjects/ExtraKeyboard/.venv/bin/python -m serial.tools.list_ports -v
+~/ExtraKeyboard-MK1/.venv/bin/python -m serial.tools.list_ports -v
 ```
 
 veya kısayol betiği:
 
 ```bash
-/Users/musacanbacak/PycharmProjects/ExtraKeyboard/.venv/bin/pyserial-ports -v
+~/ExtraKeyboard-MK1/.venv/bin/pyserial-ports -v
 ```
 
 Aradığınız satır `VID:PID=303A:82E1` içeren ve `ExtraKeyboard MK1` yazan
@@ -1018,7 +1018,7 @@ venv'de zaten kuruludur (pyserial 3.5).
 **macOS**
 
 ```bash
-/Users/musacanbacak/PycharmProjects/ExtraKeyboard/.venv/bin/python \
+~/ExtraKeyboard-MK1/.venv/bin/python \
   -m serial.tools.miniterm --eol LF --echo /dev/cu.usbmodem101 115200
 ```
 
@@ -1172,7 +1172,7 @@ daha güvenilirdir; PuTTY'yi yalnızca **event izlemek** için kullanın.
 ### 7.5 Python betiği ile otomatik sınama
 
 Tekrarlanabilir bir duman testi için venv'deki pyserial'i doğrudan kullanın.
-Aşağıdaki betiği `/Users/musacanbacak/PycharmProjects/ExtraKeyboard/tools/protokol_dene.py`
+Aşağıdaki betiği `~/ExtraKeyboard-MK1/tools/protokol_dene.py`
 olarak kaydedip çalıştırabilirsiniz:
 
 ```python
@@ -1258,8 +1258,8 @@ if __name__ == "__main__":
 Çalıştırma:
 
 ```bash
-/Users/musacanbacak/PycharmProjects/ExtraKeyboard/.venv/bin/python \
-  /Users/musacanbacak/PycharmProjects/ExtraKeyboard/tools/protokol_dene.py
+~/ExtraKeyboard-MK1/.venv/bin/python \
+  ~/ExtraKeyboard-MK1/tools/protokol_dene.py
 ```
 
 ### 7.6 Sınama kontrol listesi

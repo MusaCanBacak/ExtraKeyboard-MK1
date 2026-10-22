@@ -25,10 +25,10 @@ ESP32-S3-DevKitC-1 tabanlı. Kaynak: `firmware/src/config.h` (tam klavye) ve
 | 16 | K6  | İşlev tuşu 6 | anahtar → GND |
 | 17 | K7  | İşlev tuşu 7 | anahtar → GND |
 | 18 | K8  | İşlev tuşu 8 | anahtar → GND |
-| 8  | K9  | **Tuş 10** (işlev) | anahtar → GND · takas sonrası |
-| 9  | K10 | **COMBO** tuşu | combo modunu açar/kapatır |
-| 10 | K11 | **OS** tuşu | kısa: Win/Mac geçiş · uzun: HID yedek |
-| 21 | K12 | **Tuş 9** (işlev) | anahtar → GND · J3-18 · takas sonrası |
+| 10 | K11 | **Tuş 9** (işlev) | üst sıra · rol varsayılan derlemeye göre (bkz. bölüm 3) |
+| 9  | K10 | **Tuş 10** (işlev) | üst sıra · 〃 |
+| 8  | K9  | **COMBO** tuşu | üst sıra · combo modunu açar/kapatır |
+| 21 | K12 | **OS** tuşu | üst sıra · J3-18 · kısa: Win/Mac · uzun (3 sn): HID yedek |
 | 11 | ENC_A | Enkoder A kanalı | EC11 + RC donanım debounce |
 | 12 | ENC_B | Enkoder B kanalı | EC11 + RC donanım debounce |
 | 13 | ENC_SW | Enkoder butonu | basınca GND |
@@ -77,17 +77,24 @@ Mod değişimi: **0 (GPIO4) basılı tut + Enter (GPIO6)** → Windows/macOS ge�
 ## 3) Uygulamadaki "Tuş N" ↔ GPIO eşlemesi (tam klavye)
 
 Uygulama tuşları `keys.cpp` içindeki `KEY_PINS[]` dizisinin SIRASINA göre
-numaralanır. **Güncel eşleme (üst sıra dört tuş takas sonrası):**
+numaralanır. Tuş 1–8 her birimde aynıdır (GPIO 4, 5, 6, 7, 15, 16, 17, 18).
+**Üst sıranın dört tuşu birime göre farklı kablolanmıştır** ve rolü derleme
+ortamı seçer (`platformio.ini`):
 
-Tuş1→GPIO4, Tuş2→5, Tuş3→6, Tuş4→7, Tuş5→15, Tuş6→16, Tuş7→17, Tuş8→18,
-**Tuş9→21, Tuş10→8, COMBO→9, OS→10**.
+| Rol | `[env:quad]` / `[env:n16r8]` — **varsayılan, yeni yapımlar** | `[env:e74610]` |
+|-----|----------------|----------------|
+| Tuş 9  | GPIO10 | GPIO21 |
+| Tuş 10 | GPIO9  | GPIO8  |
+| COMBO  | GPIO8  | GPIO9  |
+| OS     | GPIO21 | GPIO10 |
 
-> NOT: Üst sıra dört tuşun (Tuş9/Tuş10/COMBO/OS) hattı montajda çaprazlıydı;
-> `keys.cpp` içinde **Tuş9↔Tuş12 ve Tuş10↔Tuş11 takası** yapılarak düzeltildi
-> (2026-09). Sonuç: Tuş9=GPIO21, Tuş10=GPIO8, COMBO=GPIO9, OS=GPIO10. GPIO↔pin
-> etiketi (K1..K12) config.h'de sabittir; değişen yalnızca hangi fiziksel tuşun
-> hangi rolü aldığıdır (`keys.cpp` sırası). 5 klavye aynı donanım olduğundan bu
-> eşleme hepsinde geçerlidir.
+> **Yeni yapımda** üst sırayı soldaki sütuna göre kablola. Tuşlar yine karışık
+> çıkarsa kabloyu sökmek gerekmez: `keys.cpp`'deki `KEY_PINS` sırasını değiştir
+> (ya da `EK_KEYMAP_SWAPPED` gibi bir bayrakla kendi ortamını aç). Hangi tuşun
+> hangi olayı ürettiğini uygulamanın **LED & Cihaz → Canlı Olay Logu** gösterir.
+> GPIO↔pin etiketi (K1..K12) `config.h`'de sabittir; değişen yalnızca hangi
+> fiziksel tuşun hangi rolü aldığıdır. (Eski not "bu eşleme 5 klavyede geçerli"
+> diyordu — YANLIŞTI: takas yalnızca E74610'da var.)
 
 ---
 
@@ -124,11 +131,17 @@ Tam klavyede kullanılmayan, yeni tuş eklemek için uygun pinler: **1, 2, 39, 4
 
 ## 6) Bellek / flash yapılandırması (pin değil ama kritik)
 
-`platformio.ini`: `board_build.arduino.memory_type = qio_qspi`, `flash_size = 8MB`,
-`partitions = default_8MB.csv`.
+ESP32-S3 modülleri aynı görünse de **bellek tipi farklı olabilir** ve yanlış
+ayar kartı hiç açılmaz hâle getirir (boot döngüsü, log'da `ets_loader.c 78`).
+Yüklemeden önce `esptool.py --chip esp32s3 flash_id` ile oku:
 
-- Bu ayar **8 MB flash + Quad SPI PSRAM (AP_3v3)** kartlar içindir.
-- Kart **N16R8 (16 MB flash + Octal PSRAM)** ise ayar `qio_opi` olmalıdır;
-  aksi hâlde açılışta sorun çıkabilir. Her karta yüklemeden önce gerçek chip
-  tipini doğrulayın: `esptool.py --chip esp32s3 flash_id` çıktısındaki
-  "Features: ... PSRAM ..." ve flash boyutu.
+| `flash_id` çıktısı | Ortam | memory_type | flash |
+|---|---|---|---|
+| `Embedded PSRAM 2MB` (Quad) + 8 MB flash | `[env:quad]` | `qio_qspi` | 8 MB |
+| `Embedded PSRAM 8MB` (Octal) + 16 MB flash — **N16R8** | `[env:n16r8]` | `qio_opi` | 16 MB |
+
+**Flash'a yazarken DIO + 40 MHz şart:** `--flash_mode dio --flash_freq 40m`.
+Bu kartlardaki Boya (`Manufacturer: 68`) flash çipleri QIO/80 MHz ile ROM
+tarafından okunamıyor. Derleme qio/80m kalır (hazır `dio_40m` bootloader
+yoktur), başlığı esptool yazarken değiştirir. Bu yüzden düz
+`pio run -t upload` **kullanılmaz**; yordam için README'nin Firmware bölümü.
